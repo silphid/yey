@@ -1,0 +1,10 @@
+registry: base1_registry
+image: base1_image
+env:
+  BASE1: base1_base1
+  ENV1: base1_env1
+  ENV2: base1_env2
+mounts:
+  /local/base1: /container/base1_base1
+  /local/mount1: /container/base1_mount1
+  /local/mount2: /container/base1_mount2

@@ -1,0 +1,4 @@
+registry:
+image:
+env: {}
+mounts: {}
