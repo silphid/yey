@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	currentVersion = 0
-	ContextBase    = "base"
+	currentVersion  = 0
+	BaseContextName = "base"
 )
 
 // ContextFile represents yey's current config persisted to disk
@@ -97,7 +97,7 @@ func (cf ContextFile) GetContextNames() ([]string, error) {
 
 	// Prepend special contexts
 	names := make([]string, 0, len(sortedNames)+2)
-	names = append(names, "base")
+	names = append(names, BaseContextName)
 	names = append(names, sortedNames...)
 
 	return names, nil
@@ -106,7 +106,7 @@ func (cf ContextFile) GetContextNames() ([]string, error) {
 // GetContext returns context with given name, or base context
 // if name is "base".
 func (cf ContextFile) GetContext(name string) (ctx.Context, error) {
-	if name == "base" {
+	if name == BaseContextName {
 		return cf.Context, nil
 	}
 	context, ok := cf.NamedContexts[name]
