@@ -1,4 +1,4 @@
-package cfg
+package ctxfile
 
 import (
 	"fmt"
@@ -23,11 +23,11 @@ func loadContext(file string) ctx.Context {
 	return context
 }
 
-func loadConfig(version, baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Config {
-	return Config{
+func loadConfig(version, baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) ContextFile {
+	return ContextFile{
 		Version: version,
 		Base:    loadContext(baseFile),
-		Contexts: map[string]ctx.Context{
+		NamedContexts: map[string]ctx.Context{
 			ctx1Key: loadContext(ctx1File),
 			ctx2Key: loadContext(ctx2File),
 		},
