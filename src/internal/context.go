@@ -5,8 +5,7 @@ import (
 )
 
 type Context struct {
-	// Do we need a name? Is it not set in the context map as the key?
-	// Name      string `yaml:"-"`
+	Name      string            `yaml:"-"`
 	Image     string            `yaml:"image"`
 	Container string            `yaml:"container"`
 	Env       map[string]string `yaml:"env"`
@@ -15,16 +14,16 @@ type Context struct {
 
 // Clone returns a deep-copy of this context
 func (c Context) Clone() Context {
-	env := c.Env
-	c.Env = make(map[string]string, len(env))
-	for key, value := range env {
-		c.Env[key] = value
+	clone := c
+
+	clone.Env = make(map[string]string, len(c.Env))
+	for key, value := range c.Env {
+		clone.Env[key] = value
 	}
 
-	mounts := c.Mounts
-	c.Mounts = make(map[string]string, len(mounts))
-	for key, value := range mounts {
-		c.Mounts[key] = value
+	clone.Mounts = make(map[string]string, len(c.Mounts))
+	for key, value := range c.Mounts {
+		clone.Mounts[key] = value
 	}
 
 	return c
@@ -64,6 +63,7 @@ func (ctx Contexts) Get(name string) (*Context, error) {
 	}
 
 	result := ctx.base.Merge(selected)
+	result.Name = name
 
 	return &result, nil
 }
