@@ -34,8 +34,8 @@ func Load(file string) (ContextFile, error) {
 	if err != nil {
 		return config, fmt.Errorf("loading config file: %w", err)
 	}
-
-	if err := yaml.Unmarshal(buf, &config); err != nil {
+	err = yaml.Unmarshal(buf, &config)
+	if err != nil {
 		return config, fmt.Errorf("unmarshalling yaml of config file %q: %w", file, err)
 	}
 
