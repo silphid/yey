@@ -67,3 +67,23 @@ func (ctx Contexts) Get(name string) (*Context, error) {
 
 	return &result, nil
 }
+
+func (ctx Contexts) Merge(other Contexts) Contexts {
+	ctx.base = ctx.base.Merge(other.base)
+
+	nameMap := map[string]struct{}{}
+	for key := range ctx.named {
+		nameMap[key] = struct{}{}
+	}
+	for key := range other.named {
+		nameMap[key] = struct{}{}
+	}
+
+	named := ctx.named
+	ctx.named = make(map[string]Context, len(nameMap))
+	for key := range nameMap {
+		ctx.named[key] = named[key].Merge(other.named[key])
+	}
+
+	return ctx
+}

@@ -22,7 +22,7 @@ type RCFile struct {
 	Contexts map[string]Context
 }
 
-func ParseRCFile(ctx context.Context, resource string) (*Contexts, error) {
+func ReadAndParseRCFile(ctx context.Context, resource string) (*Contexts, error) {
 	var rcBytes []byte
 	var err error
 
@@ -38,23 +38,33 @@ func ParseRCFile(ctx context.Context, resource string) (*Contexts, error) {
 		return nil, fmt.Errorf("failed to read rcfile: %w", err)
 	}
 
+	return ParseRCFile(ctx, rcBytes)
+}
+
+func ParseRCFile(ctx context.Context, rcBytes []byte) (*Contexts, error) {
 	var rcFile RCFile
 	if err := yaml.Unmarshal(rcBytes, &rcFile); err != nil {
 		return nil, fmt.Errorf("failed to parse rcfile: %w", err)
 	}
 
 	if rcFile.Version != rcVerserion {
-		return nil, fmt.Errorf("unsupported version %d (expected %d) in config file %q", rcVerserion, rcVerserion, yeyrcPath)
+		return nil, fmt.Errorf("unsupported version %d (expected %d) in yeyrc", rcVerserion, rcVerserion)
+	}
+
+	contexts := Contexts{
+		base:  rcFile.Context,
+		named: rcFile.Contexts,
 	}
 
 	if rcFile.Parent != "" {
-		// TODO RESOLVE RCFILE
+		parent, err := ReadAndParseRCFile(ctx, rcFile.Parent)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read parent rcfile: %w", err)
+		}
+		contexts = parent.Merge(contexts)
 	}
 
-	return &Contexts{
-		base:  rcFile.Context,
-		named: rcFile.Contexts,
-	}, nil
+	return &contexts, nil
 }
 
 func readRCFromWorkingDirectory() ([]byte, error) {
