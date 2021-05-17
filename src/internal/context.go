@@ -1,12 +1,4 @@
-package ctx
-
-import (
-	"fmt"
-	"io/ioutil"
-
-	"github.com/silphid/yey/cli/src/internal/helpers"
-	"gopkg.in/yaml.v2"
-)
+package yey
 
 // Context represents an execution context for yey (env vars and volumes)
 type Context struct {
@@ -22,24 +14,26 @@ var None = Context{
 	Mounts: make(map[string]string),
 }
 
+// Commented Load because we don't load a context from a file but will read a contextFile to get our Contexts
+
 // Load loads the context from given file
-func Load(file string) (Context, error) {
-	var context Context
-	if !helpers.PathExists(file) {
-		return context, nil
-	}
+// func Load(file string) (Context, error) {
+// 	var context Context
+// 	if !helpers.PathExists(file) {
+// 		return context, nil
+// 	}
 
-	buf, err := ioutil.ReadFile(file)
-	if err != nil {
-		return context, fmt.Errorf("loading context file: %w", err)
-	}
-	err = yaml.Unmarshal(buf, &context)
-	if err != nil {
-		return context, fmt.Errorf("unmarshalling yaml of context file %q: %w", file, err)
-	}
+// 	buf, err := ioutil.ReadFile(file)
+// 	if err != nil {
+// 		return context, fmt.Errorf("loading context file: %w", err)
+// 	}
+// 	err = yaml.Unmarshal(buf, &context)
+// 	if err != nil {
+// 		return context, fmt.Errorf("unmarshalling yaml of context file %q: %w", file, err)
+// 	}
 
-	return context, nil
-}
+// 	return context, nil
+// }
 
 // Clone returns a deep-copy of this context
 func (c Context) Clone() Context {

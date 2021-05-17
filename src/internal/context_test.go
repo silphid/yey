@@ -1,4 +1,4 @@
-package ctx
+package yey
 
 import (
 	"reflect"
@@ -12,8 +12,7 @@ func TestClone(t *testing.T) {
 	assert := _assert.New(t)
 
 	original := Context{
-		Registry: RegistryECR,
-		Image:    "image",
+		Image: "image",
 		Env: map[string]string{
 			"ENV1": "value1",
 			"ENV2": "value2",
