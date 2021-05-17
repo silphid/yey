@@ -43,16 +43,12 @@ func Load(file string) (Context, error) {
 
 // Clone returns a deep-copy of this context
 func (c Context) Clone() Context {
-	clone := Context{
-		Container: c.Container,
-		Name:      c.Name,
-		Image:     c.Image,
-		Env:       make(map[string]string),
-		Mounts:    make(map[string]string),
-	}
+	clone := c
+	clone.Env = make(map[string]string)
 	for key, value := range c.Env {
 		clone.Env[key] = value
 	}
+	clone.Mounts = make(map[string]string)
 	for key, value := range c.Mounts {
 		clone.Mounts[key] = value
 	}
