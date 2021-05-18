@@ -1,11 +1,10 @@
-package ctxfile
+package yey
 
 import (
 	"fmt"
 	"io/ioutil"
 	"sort"
 
-	"github.com/silphid/yey/cli/src/internal/ctx"
 	"github.com/silphid/yey/cli/src/internal/helpers"
 	"gopkg.in/yaml.v2"
 )
@@ -17,10 +16,10 @@ const (
 
 // ContextFile represents yey's current config persisted to disk
 type ContextFile struct {
-	ctx.Context
+	Context
 	Version       int
 	Parent        string
-	NamedContexts map[string]ctx.Context
+	NamedContexts map[string]Context
 }
 
 // Load loads ContextFile from given file
@@ -105,13 +104,13 @@ func (cf ContextFile) GetContextNames() ([]string, error) {
 
 // GetContext returns context with given name, or base context
 // if name is "base".
-func (cf ContextFile) GetContext(name string) (ctx.Context, error) {
+func (cf ContextFile) GetContext(name string) (Context, error) {
 	if name == BaseContextName {
 		return cf.Context, nil
 	}
 	context, ok := cf.NamedContexts[name]
 	if !ok {
-		return ctx.Context{}, fmt.Errorf("named context not found: %s", name)
+		return Context{}, fmt.Errorf("named context not found: %s", name)
 	}
 	return context, nil
 }
