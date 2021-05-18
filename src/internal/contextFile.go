@@ -47,21 +47,18 @@ func Load(file string) (ContextFile, error) {
 
 // Clone returns a deep-copy of this context
 func (cf ContextFile) Clone() ContextFile {
-	contextFile := ContextFile{
-		Version: cf.Version,
-		Parent:  cf.Parent,
-	}
+	clone := cf
 	for key, value := range cf.NamedContexts {
-		contextFile.NamedContexts[key] = value.Clone()
+		clone.NamedContexts[key] = value.Clone()
 	}
-	return contextFile
+	return clone
 }
 
 // Merge creates a deep-copy of this context and copies values from given source context on top of it
 func (cf ContextFile) Merge(source ContextFile) ContextFile {
 	clone := cf.Clone()
-	if source.Version != 0 {
-		clone.Version = source.Version
+	if source.Version != clone.Version {
+		panic(fmt.Errorf("trying to merge contexts with incompatible versions %d and %d", clone.Version, source.Version))
 	}
 	if source.Parent != "" {
 		clone.Parent = source.Parent
