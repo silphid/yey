@@ -1,4 +1,3 @@
-registry: base1b_registry
 image: base1b_image
 env:
   BASE1: base1b_base1

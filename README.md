@@ -87,7 +87,6 @@ context: cluster1
 
 ```yaml
 base:
-  registry: dockerhub # supported values are `gcr`, `ecr` and `dockerhub`
   image: silphid/yey
   tag: latest
   container: yey # container name for the XXX part: yey-XXX-context-tag

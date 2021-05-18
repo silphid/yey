@@ -1,4 +1,3 @@
-registry: ctx3_registry
 image: ctx3_image
 env:
   BASE1: base1b_base1

@@ -2,11 +2,9 @@ package yey
 
 // Context represents an execution context for yey (env vars and volumes)
 type Context struct {
-	Name      string `yaml:"-"`
-	Image     string
-	Container string
-	Env       map[string]string
-	Mounts    map[string]string
+	Image  string
+	Env    map[string]string
+	Mounts map[string]string
 }
 
 var None = Context{
@@ -30,18 +28,15 @@ func (c Context) Clone() Context {
 
 // Merge creates a deep-copy of this context and copies values from given source context on top of it
 func (c Context) Merge(source Context) Context {
-	context := c.Clone()
-	if source.Container != "" {
-		context.Container = source.Container
-	}
+	merged := c.Clone()
 	if source.Image != "" {
-		context.Image = source.Image
+		merged.Image = source.Image
 	}
 	for key, value := range source.Env {
-		context.Env[key] = value
+		merged.Env[key] = value
 	}
 	for key, value := range source.Mounts {
-		context.Mounts[key] = value
+		merged.Mounts[key] = value
 	}
-	return context
+	return merged
 }

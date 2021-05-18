@@ -1,4 +1,3 @@
-registry: ctx2_registry
 image: ctx2_image
 env:
   CTX2: ctx2_ctx2

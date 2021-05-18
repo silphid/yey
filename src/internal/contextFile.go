@@ -17,39 +17,40 @@ const (
 // ContextFile represents yey's current config persisted to disk
 type ContextFile struct {
 	Context
-	Version       int
-	Parent        string
-	NamedContexts map[string]Context
+	Version  int
+	Parent   string
+	Contexts map[string]Context
 }
 
 // Load loads ContextFile from given file
 func Load(file string) (ContextFile, error) {
-	var config ContextFile
+	var cf ContextFile
 	if !helpers.PathExists(file) {
-		return config, nil
+		return cf, nil
 	}
 
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
-		return config, fmt.Errorf("loading config file: %w", err)
+		return cf, fmt.Errorf("loading context file: %w", err)
 	}
-	err = yaml.Unmarshal(buf, &config)
+
+	err = yaml.Unmarshal(buf, &cf)
 	if err != nil {
-		return config, fmt.Errorf("unmarshalling yaml of config file %q: %w", file, err)
+		return cf, fmt.Errorf("unmarshalling yaml of context file %q: %w", file, err)
 	}
 
-	if config.Version != currentVersion {
-		return config, fmt.Errorf("unsupported version %d (expected %d) in config file %q", config.Version, currentVersion, file)
+	if cf.Version != currentVersion {
+		return cf, fmt.Errorf("unsupported version %d (expected %d) in context file %q", cf.Version, currentVersion, file)
 	}
 
-	return config, nil
+	return cf, nil
 }
 
 // Clone returns a deep-copy of this context
 func (cf ContextFile) Clone() ContextFile {
 	clone := cf
-	for key, value := range cf.NamedContexts {
-		clone.NamedContexts[key] = value.Clone()
+	for key, value := range cf.Contexts {
+		clone.Contexts[key] = value.Clone()
 	}
 	return clone
 }
@@ -64,12 +65,12 @@ func (cf ContextFile) Merge(source ContextFile) ContextFile {
 		clone.Parent = source.Parent
 	}
 	clone.Context.Merge(source.Context)
-	for key, value := range cf.NamedContexts {
-		existing, ok := cf.NamedContexts[key]
+	for key, value := range cf.Contexts {
+		existing, ok := cf.Contexts[key]
 		if ok {
-			cf.NamedContexts[key] = existing.Merge(value)
+			cf.Contexts[key] = existing.Merge(value)
 		} else {
-			cf.NamedContexts[key] = value
+			cf.Contexts[key] = value
 		}
 	}
 	return clone
@@ -80,7 +81,7 @@ func (cf ContextFile) Merge(source ContextFile) ContextFile {
 func (cf ContextFile) GetContextNames() ([]string, error) {
 	// Extract unique names
 	namesMap := make(map[string]bool)
-	for name := range cf.NamedContexts {
+	for name := range cf.Contexts {
 		namesMap[name] = true
 	}
 
@@ -105,9 +106,9 @@ func (cf ContextFile) GetContext(name string) (Context, error) {
 	if name == BaseContextName {
 		return cf.Context, nil
 	}
-	context, ok := cf.NamedContexts[name]
+	context, ok := cf.Contexts[name]
 	if !ok {
-		return Context{}, fmt.Errorf("named context not found: %s", name)
+		return Context{}, fmt.Errorf("context %q not found", name)
 	}
 	return context, nil
 }
