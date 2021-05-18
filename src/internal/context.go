@@ -1,15 +1,10 @@
 package yey
 
-// Context represents an execution context for yey (env vars and volumes)
+// Context represents execution configuration for some docker container
 type Context struct {
 	Image  string
 	Env    map[string]string
 	Mounts map[string]string
-}
-
-var None = Context{
-	Env:    make(map[string]string),
-	Mounts: make(map[string]string),
 }
 
 // Clone returns a deep-copy of this context
