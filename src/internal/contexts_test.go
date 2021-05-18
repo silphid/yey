@@ -7,9 +7,8 @@ import (
 	_assert "github.com/stretchr/testify/assert"
 )
 
-func loadContextFile(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) ContextFile {
-	return ContextFile{
-		Version: 0,
+func loadContexts(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Contexts {
+	return Contexts{
 		Context: loadContext(baseFile),
 		Contexts: map[string]Context{
 			ctx1Key: loadContext(ctx1File),
@@ -21,8 +20,8 @@ func loadContextFile(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Cont
 func TestGetContext(t *testing.T) {
 	assert := _assert.New(t)
 
-	parent := loadContextFile("base1", "ctx1", "ctx1", "ctx2", "ctx2")
-	child := loadContextFile("base1b", "ctx1", "ctx1b", "ctx3", "ctx3")
+	parent := loadContexts("base1", "ctx1", "ctx1", "ctx2", "ctx2")
+	child := loadContexts("base1b", "ctx1", "ctx1b", "ctx3", "ctx3")
 	merged := parent.Merge(child)
 
 	cases := []struct {
