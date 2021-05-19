@@ -79,8 +79,8 @@ func parseContextFile(data []byte) (*Contexts, error) {
 	}
 
 	contexts := Contexts{
-		Context:  ctxFile.Context,
-		contexts: ctxFile.contexts,
+		base:          ctxFile.base,
+		namedContexts: ctxFile.namedContexts,
 	}
 
 	if ctxFile.Parent != "" {

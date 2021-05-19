@@ -9,8 +9,8 @@ import (
 
 func loadContexts(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Contexts {
 	return Contexts{
-		Context: loadContext(baseFile),
-		contexts: map[string]Context{
+		base: loadContext(baseFile),
+		namedContexts: map[string]Context{
 			ctx1Key: loadContext(ctx1File),
 			ctx2Key: loadContext(ctx2File),
 		},
