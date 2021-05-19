@@ -1,10 +1,14 @@
 package yey
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/silphid/yey/cli/src/internal/helpers"
 	"gopkg.in/yaml.v2"
 )
 
@@ -19,26 +23,100 @@ type ContextFile struct {
 	Contexts `yaml:",inline"`
 }
 
-// Load loads ContextFile from given file
-func Load(file string) (ContextFile, error) {
-	var cf ContextFile
-	if !helpers.PathExists(file) {
-		return cf, nil
-	}
-
-	buf, err := ioutil.ReadFile(file)
+// readContextFileFromWorkingDirectory scans the current directory and searches for a .yeyrc.yaml file and returns
+// the bytes in the file, and an error if encountered. If none is found it climbs the directory hierarchy.
+func readContextFileFromWorkingDirectory() ([]byte, error) {
+	wd, err := os.Getwd()
 	if err != nil {
-		return cf, fmt.Errorf("loading context file: %w", err)
+		return nil, err
 	}
 
-	err = yaml.Unmarshal(buf, &cf)
+	for {
+		candidate := filepath.Join(wd, ".yeyrc.yaml")
+		data, err := os.ReadFile(candidate)
+
+		if errors.Is(err, os.ErrNotExist) {
+			if wd == "/" {
+				return nil, fmt.Errorf("failed to find a .yeyrc in directory hierarchy")
+			}
+			wd = filepath.Join(wd, "..")
+			continue
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to read context file: %w", err)
+		}
+
+		return data, nil
+	}
+}
+
+// readContextFileFromFilePath reads the contextfile from the fs
+func readContextFileFromFilePath(path string) ([]byte, error) {
+	return os.ReadFile(path)
+}
+
+// readContextFileFromNetwork reads the contextfile from the network over http.
+func readContextFileFromNetwork(url string) ([]byte, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		return cf, fmt.Errorf("unmarshalling yaml of context file %q: %w", file, err)
+		return nil, fmt.Errorf("failed request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
+}
+
+// parseContextFile unmarshals the contextFile data and resolves any parent contextfiles
+func parseContextFile(data []byte) (*Contexts, error) {
+	var ctxFile ContextFile
+	if err := yaml.Unmarshal(data, &ctxFile); err != nil {
+		return nil, fmt.Errorf("failed to decode context file: %w", err)
 	}
 
-	if cf.Version != currentVersion {
-		return cf, fmt.Errorf("unsupported version %d (expected %d) in context file %q", cf.Version, currentVersion, file)
+	if ctxFile.Version != currentVersion {
+		return nil, fmt.Errorf("unsupported context file version")
 	}
 
-	return cf, nil
+	contexts := Contexts{
+		Context:  ctxFile.Context,
+		contexts: ctxFile.contexts,
+	}
+
+	if ctxFile.Parent != "" {
+		parent, err := readAndParseContextFile(ctxFile.Parent)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve parent contexts : %s : %w", ctxFile.Parent, err)
+		}
+		contexts = parent.Merge(contexts)
+	}
+
+	return &contexts, nil
+}
+
+// readAndParseContextFile reads and parses the context file from a path. If empty will work from current working directory
+// looking for default .yeyrc.yaml file, if starts with https: will download from network. Otherwise searches path in filesystem
+func readAndParseContextFile(path string) (*Contexts, error) {
+	var bytes []byte
+	var err error
+
+	if path == "" {
+		bytes, err = readContextFileFromWorkingDirectory()
+	} else if strings.HasPrefix(path, "https:") {
+		bytes, err = readContextFileFromNetwork(path)
+	} else {
+		bytes, err = readContextFileFromFilePath(path)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read contextfile: %w", err)
+	}
+
+	return parseContextFile(bytes)
+}
+
+// ReadAndParseContextFile reads the context file and returns the contexts. It starts by reading from current working directory
+// and resolves all parent context files
+func ReadAndParseContextFile() (*Contexts, error) {
+	return readAndParseContextFile("")
 }
