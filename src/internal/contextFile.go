@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 )
 
@@ -53,6 +54,10 @@ func readContextFileFromWorkingDirectory() ([]byte, error) {
 
 // readContextFileFromFilePath reads the contextfile from the fs
 func readContextFileFromFilePath(path string) ([]byte, error) {
+	path, err := homedir.Expand(path)
+	if err != nil {
+		return nil, err
+	}
 	return os.ReadFile(path)
 }
 
@@ -60,7 +65,7 @@ func readContextFileFromFilePath(path string) ([]byte, error) {
 func readContextFileFromNetwork(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed request: %w", err)
+		return nil, fmt.Errorf("failed fetching context file from network: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -68,14 +73,14 @@ func readContextFileFromNetwork(url string) ([]byte, error) {
 }
 
 // parseContextFile unmarshals the contextFile data and resolves any parent contextfiles
-func parseContextFile(data []byte) (*Contexts, error) {
+func parseContextFile(data []byte) (Contexts, error) {
 	var ctxFile ContextFile
 	if err := yaml.Unmarshal(data, &ctxFile); err != nil {
-		return nil, fmt.Errorf("failed to decode context file: %w", err)
+		return Contexts{}, fmt.Errorf("failed to decode context file: %w", err)
 	}
 
 	if ctxFile.Version != currentVersion {
-		return nil, fmt.Errorf("unsupported context file version")
+		return Contexts{}, fmt.Errorf("unsupported context file version")
 	}
 
 	contexts := Contexts{
@@ -86,17 +91,17 @@ func parseContextFile(data []byte) (*Contexts, error) {
 	if ctxFile.Parent != "" {
 		parent, err := readAndParseContextFile(ctxFile.Parent)
 		if err != nil {
-			return nil, fmt.Errorf("failed to resolve parent contexts : %s : %w", ctxFile.Parent, err)
+			return Contexts{}, fmt.Errorf("failed to resolve parent context %q: %w", ctxFile.Parent, err)
 		}
 		contexts = parent.Merge(contexts)
 	}
 
-	return &contexts, nil
+	return contexts, nil
 }
 
 // readAndParseContextFile reads and parses the context file from a path. If empty will work from current working directory
 // looking for default .yeyrc.yaml file, if starts with https: will download from network. Otherwise searches path in filesystem
-func readAndParseContextFile(path string) (*Contexts, error) {
+func readAndParseContextFile(path string) (Contexts, error) {
 	var bytes []byte
 	var err error
 
@@ -109,7 +114,7 @@ func readAndParseContextFile(path string) (*Contexts, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to read contextfile: %w", err)
+		return Contexts{}, fmt.Errorf("failed to read contextfile: %w", err)
 	}
 
 	return parseContextFile(bytes)
@@ -117,6 +122,6 @@ func readAndParseContextFile(path string) (*Contexts, error) {
 
 // ReadAndParseContextFile reads the context file and returns the contexts. It starts by reading from current working directory
 // and resolves all parent context files
-func ReadAndParseContextFile() (*Contexts, error) {
+func ReadAndParseContextFile() (Contexts, error) {
 	return readAndParseContextFile("")
 }

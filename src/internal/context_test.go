@@ -16,11 +16,11 @@ func loadContext(file string) Context {
 	if !helpers.PathExists(path) {
 		panic(fmt.Errorf("context file not found: %q", path))
 	}
-	context, err := Load(path)
+	contexts, err := readAndParseContextFile(path)
 	if err != nil {
 		panic(fmt.Errorf("loading context from %q: %w", path, err))
 	}
-	return context.Context
+	return contexts.base
 }
 
 func assertNotSameMapStringString(t *testing.T, map1, map2 map[string]string, msgAndArgs ...interface{}) {

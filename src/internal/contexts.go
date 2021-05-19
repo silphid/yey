@@ -15,28 +15,27 @@ type Contexts struct {
 	namedContexts map[string]Context
 }
 
-// Clone returns a deep-copy of this object
-func (c Contexts) Clone() Contexts {
-	clone := c
-	for key, value := range c.namedContexts {
-		clone.namedContexts[key] = value.Clone()
-	}
-	return clone
-}
-
 // Merge creates a deep-copy of this object and copies values from given source object on top of it
 func (c Contexts) Merge(source Contexts) Contexts {
-	clone := c.Clone()
-	clone.base.Merge(source.base)
+	merged := Contexts{
+		base:          c.base.Merge(source.base),
+		namedContexts: make(map[string]Context),
+	}
+
+	for key, value := range c.namedContexts {
+		merged.namedContexts[key] = value.Clone()
+	}
+
 	for key, value := range source.namedContexts {
-		existing, ok := clone.namedContexts[key]
+		existing, ok := merged.namedContexts[key]
 		if ok {
-			c.namedContexts[key] = existing.Merge(value)
+			merged.namedContexts[key] = existing.Merge(value)
 		} else {
-			c.namedContexts[key] = value
+			merged.namedContexts[key] = value
 		}
 	}
-	return clone
+
+	return merged
 }
 
 // GetContextNames returns the list of all context names user can choose from,
