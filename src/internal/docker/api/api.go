@@ -12,8 +12,8 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/silphid/yey/cli/src/internal/logging"
-	"github.com/silphid/yey/cli/src/internal/yey"
+	"github.com/silphid/yey/src/internal/logging"
+	"github.com/silphid/yey/src/internal/yey"
 )
 
 type API struct{}

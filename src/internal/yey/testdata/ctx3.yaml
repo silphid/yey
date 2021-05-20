@@ -1,0 +1,9 @@
+image: ctx3_image
+env:
+  CTX3: ctx3_ctx3
+  ENV1: ctx3_env1
+  ENV3: ctx3_env3
+mounts:
+  /local/ctx3: /container/ctx3_ctx3
+  /local/mount1: /container/ctx3_mount1
+  /local/mount3: /container/ctx3_mount3

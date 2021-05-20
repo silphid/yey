@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/silphid/yey/cli/src/cmd"
+	"github.com/silphid/yey/src/cmd"
 )
 
 var version string

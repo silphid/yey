@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/silphid/yey/cli/src/internal/core"
+	"github.com/silphid/yey/src/internal/core"
 	"github.com/spf13/cobra"
 )
 

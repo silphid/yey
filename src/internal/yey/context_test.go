@@ -7,15 +7,11 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/silphid/yey/cli/src/internal/helpers"
 	_assert "github.com/stretchr/testify/assert"
 )
 
 func loadContext(file string) Context {
 	path := filepath.Join("testdata", file+".yaml")
-	if !helpers.PathExists(path) {
-		panic(fmt.Errorf("context file not found: %q", path))
-	}
 	contexts, err := readAndParseContextFile(path)
 	if err != nil {
 		panic(fmt.Errorf("loading context from %q: %w", path, err))

@@ -1,0 +1,9 @@
+image: base1b_image
+env:
+  BASE1: base1b_base1
+  ENV1: base1b_env1
+  ENV3: base1b_env3
+mounts:
+  /local/base1: /container/base1b_base1
+  /local/mount1: /container/base1b_mount1
+  /local/mount3: /container/base1b_mount3

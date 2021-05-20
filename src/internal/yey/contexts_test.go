@@ -55,6 +55,7 @@ func TestGetContext(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 
 			actual, err := merged.GetContext(c.name)
+			actual.Name = c.name
 
 			if c.error != "" {
 				assert.NotNil(err)
@@ -63,6 +64,8 @@ func TestGetContext(t *testing.T) {
 			}
 
 			expected := loadContext(c.expected)
+			expected.Name = c.name
+
 			assert.NoError(err)
 			if diff := deep.Equal(expected, actual); diff != nil {
 				t.Error(diff)

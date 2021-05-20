@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/silphid/yey/cli/src/internal/docker/api"
-	"github.com/silphid/yey/cli/src/internal/yey"
+	"github.com/silphid/yey/src/internal/docker/api"
+	"github.com/silphid/yey/src/internal/yey"
 )
 
 const (

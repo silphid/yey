@@ -1,7 +1,7 @@
 package containers
 
 import (
-	"github.com/silphid/yey/cli/src/internal/docker/api"
+	"github.com/silphid/yey/src/internal/docker/api"
 	"github.com/spf13/cobra"
 )
 

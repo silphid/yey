@@ -1,9 +1,9 @@
 package get
 
 import (
-	"github.com/silphid/yey/cli/src/cmd/get/containers"
-	"github.com/silphid/yey/cli/src/cmd/get/context"
-	"github.com/silphid/yey/cli/src/cmd/get/contexts"
+	"github.com/silphid/yey/src/cmd/get/containers"
+	"github.com/silphid/yey/src/cmd/get/context"
+	"github.com/silphid/yey/src/cmd/get/contexts"
 	"github.com/spf13/cobra"
 )
 

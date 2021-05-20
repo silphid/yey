@@ -1,0 +1,11 @@
+image: ctx1b_image
+env:
+  CTX1: ctx1b_ctx1
+  ENV1: ctx1b_env1
+  ENV2: ctx1_env2
+  ENV3: ctx1b_env3
+mounts:
+  /local/ctx1: /container/ctx1b_ctx1
+  /local/mount1: /container/ctx1b_mount1
+  /local/mount2: /container/ctx1_mount2
+  /local/mount3: /container/ctx1b_mount3

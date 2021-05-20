@@ -1,9 +1,8 @@
 package core
 
 import (
-	"github.com/silphid/yey/cli/src/internal/contain"
-	"github.com/silphid/yey/cli/src/internal/ctx"
-	"github.com/silphid/yey/cli/src/internal/yey"
+	"github.com/silphid/yey/src/internal/contain"
+	"github.com/silphid/yey/src/internal/yey"
 )
 
 func (c Core) Start(contextName string) error {
@@ -16,18 +15,15 @@ func (c Core) Start(contextName string) error {
 
 func (c Core) getOrPromptContext(name string) (yey.Context, error) {
 	if name == "" {
-		name = state.CurrentContext
-		if name == "" {
-			var err error
-			name, err = c.promptContext()
-			if err != nil {
-				return ctx.None, err
-			}
+		var err error
+		name, err = c.promptContext()
+		if err != nil {
+			return yey.Context{}, err
 		}
 	} else {
 		err := c.validateContextName(name)
 		if err != nil {
-			return ctx.None, err
+			return yey.Context{}, err
 		}
 	}
 	return c.GetContext(name)

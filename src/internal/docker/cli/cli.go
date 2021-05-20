@@ -3,12 +3,12 @@ package cli
 import (
 	"fmt"
 
-	"github.com/silphid/yey/cli/src/internal/ctx"
+	"github.com/silphid/yey/src/internal/yey"
 )
 
 type CLI struct{}
 
-func (c CLI) Start(ct ctx.Context, imageTag, containerName string) error {
+func (c CLI) Start(ct yey.Context, imageTag, containerName string) error {
 	return fmt.Errorf("not implemented")
 
 	// Get running ID and state

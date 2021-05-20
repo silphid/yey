@@ -1,9 +1,0 @@
-image: ctx1_image
-env:
-  CTX1: ctx1_ctx1
-  ENV1: ctx1_env1
-  ENV2: ctx1_env2
-mounts:
-  /local/ctx1: /container/ctx1_ctx1
-  /local/mount1: /container/ctx1_mount1
-  /local/mount2: /container/ctx1_mount2
