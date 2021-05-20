@@ -1,7 +1,10 @@
 package yey
 
+import "gopkg.in/yaml.v2"
+
 // Context represents execution configuration for some docker container
 type Context struct {
+	Name   string `yaml:"-"`
 	Image  string
 	Env    map[string]string
 	Mounts map[string]string
@@ -34,4 +37,13 @@ func (c Context) Merge(source Context) Context {
 		merged.Mounts[key] = value
 	}
 	return merged
+}
+
+// String returns a user-friendly yaml representation of this context
+func (c Context) String() string {
+	buf, err := yaml.Marshal(c)
+	if err != nil {
+		panic(err)
+	}
+	return string(buf)
 }

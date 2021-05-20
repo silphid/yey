@@ -11,14 +11,14 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	"github.com/mitchellh/go-homedir"
-	"github.com/silphid/yey/cli/src/internal/ctx"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/silphid/yey/cli/src/internal/logging"
+	"github.com/silphid/yey/cli/src/internal/yey"
 )
 
 type API struct{}
 
-func (a API) Start(ct ctx.Context, tag, containerName string) error {
+func (a API) Start(c yey.Context, containerName string) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (a API) Start(ct ctx.Context, tag, containerName string) error {
 
 	if container == nil {
 		logging.Log("Container %q does not already exist", containerName)
-		container, err = createContainer(cli, ct, tag, containerName)
+		container, err = createContainer(cli, c, containerName)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func getContainer(cli *client.Client, name string) (*types.Container, error) {
 	return nil, nil
 }
 
-func createContainer(cli *client.Client, c ctx.Context, tag, name string) (*types.Container, error) {
+func createContainer(cli *client.Client, c yey.Context, name string) (*types.Container, error) {
 	if c.Image == "" {
 		return nil, fmt.Errorf("missing required property %q", "image")
 	}
@@ -90,14 +90,8 @@ func createContainer(cli *client.Client, c ctx.Context, tag, name string) (*type
 		})
 	}
 
-	// Format "image:tag"
-	image := c.Image
-	if tag != "" {
-		image += ":" + tag
-	}
-
 	config := container.Config{
-		Image:        image,
+		Image:        c.Image,
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -109,7 +103,7 @@ func createContainer(cli *client.Client, c ctx.Context, tag, name string) (*type
 	}
 	networkingConfig := network.NetworkingConfig{}
 
-	logging.Log("Creating container from image: %s", image)
+	logging.Log("Creating container from image: %s", c.Image)
 	_, err = cli.ContainerCreate(context.Background(), &config, &hostConfig, &networkingConfig, nil, name)
 	if err != nil {
 		return nil, err

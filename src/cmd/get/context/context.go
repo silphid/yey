@@ -11,23 +11,27 @@ import (
 func New() *cobra.Command {
 	return &cobra.Command{
 		Use:   "context",
-		Short: "Displays current context",
-		Args:  cobra.NoArgs,
+		Short: "Displays resolved values of given context",
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			return run()
+			name := ""
+			if len(args) == 1 {
+				name = args[0]
+			}
+			return run(name)
 		},
 	}
 }
 
-func run() error {
+func run(name string) error {
 	c, err := core.New()
 	if err != nil {
 		return err
 	}
-	state, err := c.GetState()
+	context, err := c.GetContext(name)
 	if err != nil {
 		return err
 	}
-	fmt.Println(state.CurrentContext)
+	fmt.Println(context.String())
 	return nil
 }
