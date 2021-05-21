@@ -1,9 +1,11 @@
-package api
+package docker
 
 import (
 	"context"
 	"fmt"
 	"strings"
+
+	yey "github.com/silphid/yey/src/internal"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -11,27 +13,32 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/silphid/yey/src/internal/logging"
-	"github.com/silphid/yey/src/internal/yey"
+
+	homedir "github.com/mitchellh/go-homedir"
 )
 
-type API struct{}
-
-func (a API) Start(c yey.Context, containerName string) error {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+func NewAPI() (API, error) {
+	client, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
-		return err
+		return API{}, err
 	}
+	return API{client}, nil
+}
 
-	container, err := getContainer(cli, containerName)
+type API struct {
+	client *client.Client
+}
+
+func (api API) Start(ctx context.Context, yeyCtx yey.Context, containerName string) error {
+	container, err := api.getContainer(ctx, containerName)
 	if err != nil {
 		return err
 	}
 
 	if container == nil {
 		logging.Log("Container %q does not already exist", containerName)
-		container, err = createContainer(cli, c, containerName)
+		container, err = api.createContainer(ctx, yeyCtx, containerName)
 		if err != nil {
 			return err
 		}
@@ -42,7 +49,7 @@ func (a API) Start(c yey.Context, containerName string) error {
 
 	if container.State != "running" {
 		logging.Log("Starting container %q", containerName)
-		err = cli.ContainerStart(context.Background(), container.ID, types.ContainerStartOptions{})
+		err = api.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
 		if err != nil {
 			return err
 		}
@@ -54,11 +61,10 @@ func (a API) Start(c yey.Context, containerName string) error {
 	return nil
 }
 
-func getContainer(cli *client.Client, name string) (*types.Container, error) {
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
-		All: true,
-		Filters: filters.NewArgs(
-			filters.Arg("name", name)),
+func (api API) getContainer(ctx context.Context, name string) (*types.Container, error) {
+	containers, err := api.client.ContainerList(ctx, types.ContainerListOptions{
+		All:     true,
+		Filters: filters.NewArgs(filters.Arg("name", name)),
 	})
 	if err != nil {
 		return nil, err
@@ -67,10 +73,11 @@ func getContainer(cli *client.Client, name string) (*types.Container, error) {
 	if len(containers) > 0 {
 		return &containers[0], nil
 	}
+
 	return nil, nil
 }
 
-func createContainer(cli *client.Client, c yey.Context, name string) (*types.Container, error) {
+func (api API) createContainer(ctx context.Context, c yey.Context, name string) (*types.Container, error) {
 	if c.Image == "" {
 		return nil, fmt.Errorf("missing required property %q", "image")
 	}
@@ -104,21 +111,17 @@ func createContainer(cli *client.Client, c yey.Context, name string) (*types.Con
 	networkingConfig := network.NetworkingConfig{}
 
 	logging.Log("Creating container from image: %s", c.Image)
-	_, err = cli.ContainerCreate(context.Background(), &config, &hostConfig, &networkingConfig, nil, name)
+	_, err = api.client.ContainerCreate(ctx, &config, &hostConfig, &networkingConfig, nil, name)
 	if err != nil {
 		return nil, err
 	}
 
-	return getContainer(cli, name)
+	return api.getContainer(ctx, name)
 }
 
-func ListContainers() error {
-	cli, err := client.NewClientWithOpts()
-	if err != nil {
-		return err
-	}
-
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+// TODO should return strings since library code should not be expected to handle the printing
+func (api API) ListContainers(ctx context.Context) error {
+	containers, err := api.client.ContainerList(ctx, types.ContainerListOptions{
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("name", "yey-*")),
@@ -128,6 +131,7 @@ func ListContainers() error {
 	}
 
 	for _, container := range containers {
+		// HMMMMMMMMM SUSPICIOUS
 		fmt.Println(strings.TrimPrefix(container.Names[0], "/"))
 	}
 	return nil

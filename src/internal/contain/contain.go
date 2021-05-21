@@ -1,11 +1,12 @@
 package contain
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
-	"github.com/silphid/yey/src/internal/docker/api"
-	"github.com/silphid/yey/src/internal/yey"
+	yey "github.com/silphid/yey/src/internal"
+	"github.com/silphid/yey/src/internal/docker"
 )
 
 const (
@@ -19,9 +20,12 @@ func Start(c yey.Context) error {
 	}
 	containerName := fmt.Sprintf("%s-%s-%s", yeyContainerPrefix, shortImageName, c.Name)
 
-	docker := api.API{}
+	docker, err := docker.NewAPI()
+	if err != nil {
+		return fmt.Errorf("failed to connect to docker client: %w", err)
+	}
 	// docker := cli.CLI{}
-	return docker.Start(c, containerName)
+	return docker.Start(context.TODO(), c, containerName)
 }
 
 var imageNameRegex = regexp.MustCompile(`(.*/)?(.+?)(:.*)?$`)
