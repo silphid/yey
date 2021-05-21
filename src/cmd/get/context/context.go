@@ -28,6 +28,10 @@ func run(name string) error {
 	if err != nil {
 		return err
 	}
+	name, err = c.GetOrPromptContextName(name)
+	if err != nil {
+		return err
+	}
 	context, err := c.GetContext(name)
 	if err != nil {
 		return err

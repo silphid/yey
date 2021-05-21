@@ -38,7 +38,7 @@ func readContextFileFromWorkingDirectory() ([]byte, error) {
 
 		if errors.Is(err, os.ErrNotExist) {
 			if wd == "/" {
-				return nil, fmt.Errorf("failed to find a .yeyrc in directory hierarchy")
+				return nil, fmt.Errorf("no .yeyrc.yaml in directory hierarchy")
 			}
 			wd = filepath.Join(wd, "..")
 			continue
@@ -84,8 +84,8 @@ func parseContextFile(data []byte) (Contexts, error) {
 	}
 
 	contexts := Contexts{
-		Context:  ctxFile.Context,
-		contexts: ctxFile.contexts,
+		Context: ctxFile.Context,
+		Named:   ctxFile.Named,
 	}
 
 	if ctxFile.Parent != "" {

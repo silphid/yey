@@ -1,0 +1,46 @@
+parent: parent.yeyrc.yaml
+
+image: base1_image
+env:
+  BASE1: base1_base1
+  ENV1: base1_env1
+  ENV2: base1_env2
+mounts:
+  /local/base1: /container/base1_base1
+  /local/mount1: /container/base1_mount1
+  /local/mount2: /container/base1_mount2
+
+named:
+
+  ctx1:
+    image: ctx1_image
+    env:
+      CTX1: ctx1_ctx1
+      ENV1: ctx1_env1
+      ENV2: ctx1_env2
+    mounts:
+      /local/ctx1: /container/ctx1_ctx1
+      /local/mount1: /container/ctx1_mount1
+      /local/mount2: /container/ctx1_mount2
+
+  ctx2:
+    image: ctx2_image
+    env:
+      CTX2: ctx2_ctx2
+      ENV1: ctx2_env1
+      ENV3: ctx2_env3
+    mounts:
+      /local/ctx2: /container/ctx2_ctx2
+      /local/mount1: /container/ctx2_mount1
+      /local/mount3: /container/ctx2_mount3
+
+  ctx3:
+    image: ctx3_image
+    env:
+      CTX3: ctx3_ctx3
+      ENV1: ctx3_env1
+      ENV3: ctx3_env3
+    mounts:
+      /local/ctx3: /container/ctx3_ctx3
+      /local/mount1: /container/ctx3_mount1
+      /local/mount3: /container/ctx3_mount3

@@ -4,7 +4,7 @@ import "gopkg.in/yaml.v2"
 
 // Context represents execution configuration for some docker container
 type Context struct {
-	Name   string `yaml:"-"`
+	Name   string `yaml:",omitempty"`
 	Image  string
 	Env    map[string]string
 	Mounts map[string]string

@@ -7,11 +7,29 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
+func (c Core) GetOrPromptContextName(name string) (string, error) {
+	if name == "" {
+		return c.promptContext()
+	}
+	if err := c.validateContextName(name); err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
 func (c Core) promptContext() (string, error) {
 	// Get context names
 	names, err := c.GetContextNames()
 	if err != nil {
 		return "", err
+	}
+	if len(names) == 0 {
+		return "", fmt.Errorf("no context defined")
+	}
+
+	// Only one context defined, no need to prompt
+	if len(names) == 1 {
+		return names[0], nil
 	}
 
 	// Show selection prompt

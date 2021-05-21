@@ -11,25 +11,25 @@ const (
 
 // Contexts represents a combinaison of base and named contexts
 type Contexts struct {
-	Context  `yaml:",inline"`
-	contexts map[string]Context
+	Context `yaml:",inline"`
+	Named   map[string]Context
 }
 
 // Merge creates a deep-copy of this object and copies values from given source object on top of it
 func (c Contexts) Merge(source Contexts) Contexts {
 	merged := Contexts{
-		Context:  c.Context.Merge(source.Context),
-		contexts: make(map[string]Context),
+		Context: c.Context.Merge(source.Context),
+		Named:   make(map[string]Context),
 	}
-	for key, value := range c.contexts {
-		merged.contexts[key] = value.Clone()
+	for key, value := range c.Named {
+		merged.Named[key] = value.Clone()
 	}
-	for key, value := range source.contexts {
-		existing, ok := merged.contexts[key]
+	for key, value := range source.Named {
+		existing, ok := merged.Named[key]
 		if ok {
-			merged.contexts[key] = existing.Merge(value)
+			merged.Named[key] = existing.Merge(value)
 		} else {
-			merged.contexts[key] = value
+			merged.Named[key] = value
 		}
 	}
 	return merged
@@ -40,7 +40,7 @@ func (c Contexts) Merge(source Contexts) Contexts {
 func (c Contexts) GetNames() ([]string, error) {
 	// Extract unique names
 	namesMap := make(map[string]bool)
-	for name := range c.contexts {
+	for name := range c.Named {
 		namesMap[name] = true
 	}
 
@@ -64,9 +64,10 @@ func (c Contexts) GetNames() ([]string, error) {
 func (c Contexts) GetContext(name string) (Context, error) {
 	base := c.Context
 	if name == BaseContextName {
+		base.Name = "base"
 		return base, nil
 	}
-	named, ok := c.contexts[name]
+	named, ok := c.Named[name]
 	if !ok {
 		return Context{}, fmt.Errorf("context %q not found", name)
 	}
