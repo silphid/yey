@@ -1,8 +1,8 @@
 package core
 
 import (
+	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/contain"
-	"github.com/silphid/yey/src/internal/yey"
 )
 
 func (c Core) Start(contextName string) error {

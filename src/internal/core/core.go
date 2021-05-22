@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/silphid/yey/src/internal/yey"
+	yey "github.com/silphid/yey/src/internal"
 )
 
 type Core struct {

@@ -1,9 +1,9 @@
-package cli
+package docker
 
 import (
 	"fmt"
 
-	"github.com/silphid/yey/src/internal/yey"
+	yey "github.com/silphid/yey/src/internal"
 )
 
 type CLI struct{}
@@ -22,17 +22,17 @@ func (c CLI) Start(ct yey.Context, imageTag, containerName string) error {
 	// run docker exec -it "${DOCKER_EXEC_ARGS[@]}" "${DOCKER_CONTAINER}" zsh
 }
 
-type containerState string
+// type containerState string
 
-const (
-	stateRunning containerState = "running"
-	stateExited                 = "exited"
-)
+// const (
+// 	stateRunning containerState = "running"
+// 	stateExited                 = "exited"
+// )
 
-type container struct {
-	state containerState
-}
+// type container struct {
+// 	state containerState
+// }
 
-func getContainer(name string) (container, error) {
-	return container{}, nil
-}
+// func getContainer(name string) (container, error) {
+// 	return container{}, nil
+// }
