@@ -19,7 +19,7 @@ func New() (Core, error) {
 // GetContextNames returns the list of all context names user can
 // choose from, including the special "base" context.
 func (c Core) GetContextNames() ([]string, error) {
-	return c.contexts.GetNames()
+	return c.contexts.GetNames(), nil
 }
 
 // GetContext finds shared/user base/named contexts and returns their merged result.
