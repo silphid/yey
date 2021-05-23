@@ -16,8 +16,6 @@ func NewRoot() *cobra.Command {
 
 	// var options internal.Options
 	c.PersistentFlags().BoolVarP(&logging.Verbose, "verbose", "v", false, "display verbose messages")
-	// c.AddCommand(get.New())
-	// c.AddCommand(start.New())
-	// c.AddCommand(versioning.New(version))
+
 	return c
 }
