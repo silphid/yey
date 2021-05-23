@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/silphid/yey/src/internal/core"
+	yey "github.com/silphid/yey/src/internal"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +22,11 @@ func New() *cobra.Command {
 }
 
 func run() error {
-	c, err := core.New()
+	contexts, err := yey.ReadAndParseContextFile()
 	if err != nil {
 		return err
 	}
-	names, err := c.GetContextNames()
-	if err != nil {
-		return err
-	}
-	fmt.Println(strings.Join(names, "\n"))
+
+	fmt.Println(strings.Join(contexts.GetNames(), "\n"))
 	return nil
 }

@@ -1,13 +1,12 @@
-package contain
+package docker
 
 import (
 	"testing"
 
-	_assert "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetShortImageName(t *testing.T) {
-	assert := _assert.New(t)
 
 	cases := []struct {
 		name     string
@@ -49,17 +48,18 @@ func TestGetShortImageName(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			r := require.New(t)
 
-			actual, err := getShortImageName(c.image)
+			actual, err := GetShortImageName(c.image)
 
 			if c.error != "" {
-				assert.NotNil(err)
-				assert.Equal(c.error, err.Error())
+				r.NotNil(err)
+				r.Equal(c.error, err.Error())
 				return
 			}
 
-			assert.NoError(err)
-			assert.Equal(c.expected, actual)
+			r.NoError(err)
+			r.Equal(c.expected, actual)
 		})
 	}
 }

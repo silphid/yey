@@ -3,7 +3,8 @@ package context
 import (
 	"fmt"
 
-	"github.com/silphid/yey/src/internal/core"
+	"github.com/silphid/yey/src/cmd"
+	yey "github.com/silphid/yey/src/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -24,18 +25,24 @@ func New() *cobra.Command {
 }
 
 func run(name string) error {
-	c, err := core.New()
+	contexts, err := yey.ReadAndParseContextFile()
 	if err != nil {
 		return err
 	}
-	name, err = c.GetOrPromptContextName(name)
-	if err != nil {
-		return err
+
+	if name == "" {
+		var err error
+		name, err = cmd.PromptContext(contexts)
+		if err != nil {
+			return fmt.Errorf("failed to prompt for desired context: %w", err)
+		}
 	}
-	context, err := c.GetContext(name)
+
+	context, err := contexts.GetContext(name)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get context with name %q: %w", name, err)
 	}
+
 	fmt.Println(context.String())
 	return nil
 }

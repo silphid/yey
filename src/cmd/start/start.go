@@ -38,7 +38,7 @@ func run(ctx context.Context, name string) error {
 		var err error
 		name, err = cmd.PromptContext(contexts)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to prompt for desired context: %w", err)
 		}
 	}
 
@@ -49,7 +49,7 @@ func run(ctx context.Context, name string) error {
 
 	shortImageName, err := docker.GetShortImageName(yeyContext.Image)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get short image name for context.image: %w", err)
 	}
 
 	containerName := fmt.Sprintf("yey-%s-%s", shortImageName, yeyContext.Name)
