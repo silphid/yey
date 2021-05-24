@@ -52,7 +52,7 @@ func run(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to get short image name for context.image: %w", err)
 	}
 
-	containerName := fmt.Sprintf("yey-%s-%s", shortImageName, yeyContext.Name)
+	containerName := fmt.Sprintf("yey-%s-%s-%s", shortImageName, yeyContext.Name, yeyContext.Hash())
 
 	api, err := docker.NewAPI()
 	if err != nil {

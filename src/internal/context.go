@@ -1,6 +1,12 @@
 package yey
 
-import "gopkg.in/yaml.v2"
+import (
+	"encoding/base64"
+	"hash/crc32"
+	"io"
+
+	"gopkg.in/yaml.v2"
+)
 
 // Context represents execution configuration for some docker container
 type Context struct {
@@ -46,4 +52,10 @@ func (c Context) String() string {
 		panic(err)
 	}
 	return string(buf)
+}
+
+func (c Context) Hash() string {
+	hasher := crc32.NewIEEE()
+	io.WriteString(hasher, c.String())
+	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }
