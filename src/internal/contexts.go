@@ -37,7 +37,7 @@ func (c Contexts) Merge(source Contexts) Contexts {
 
 // GetNames returns the list of all context names user can choose from,
 // including the special "base" contexts.
-func (c Contexts) GetNames() ([]string, error) {
+func (c Contexts) GetNames() []string {
 	// Extract unique names
 	namesMap := make(map[string]bool)
 	for name := range c.Named {
@@ -56,7 +56,7 @@ func (c Contexts) GetNames() ([]string, error) {
 	names = append(names, BaseContextName)
 	names = append(names, sortedNames...)
 
-	return names, nil
+	return names
 }
 
 // GetContext returns context with given name, or base context
