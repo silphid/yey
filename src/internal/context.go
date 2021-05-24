@@ -1,8 +1,8 @@
 package yey
 
 import (
-	"encoding/base64"
-	"hash/crc32"
+	"encoding/hex"
+	"hash/crc64"
 	"io"
 
 	"gopkg.in/yaml.v2"
@@ -55,7 +55,7 @@ func (c Context) String() string {
 }
 
 func (c Context) Hash() string {
-	hasher := crc32.NewIEEE()
+	hasher := crc64.New(crc64.MakeTable(crc64.ECMA))
 	io.WriteString(hasher, c.String())
-	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
