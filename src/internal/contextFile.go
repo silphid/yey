@@ -61,7 +61,7 @@ func readContextFileFromFilePath(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-// readContextFileFromNetwork reads the contextfile from the network over http.
+// readContextFileFromNetwork reads the contextfile from the network over http
 func readContextFileFromNetwork(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -89,7 +89,7 @@ func parseContextFile(data []byte) (Contexts, error) {
 	}
 
 	if ctxFile.Parent != "" {
-		parent, err := readAndParseContextFile(ctxFile.Parent)
+		parent, err := readAndParseContextFileFromURI(ctxFile.Parent)
 		if err != nil {
 			return Contexts{}, fmt.Errorf("failed to resolve parent context %q: %w", ctxFile.Parent, err)
 		}
@@ -99,29 +99,32 @@ func parseContextFile(data []byte) (Contexts, error) {
 	return contexts, nil
 }
 
-// readAndParseContextFile reads and parses the context file from a path. If empty will work from current working directory
-// looking for default .yeyrc.yaml file, if starts with https: will download from network. Otherwise searches path in filesystem
-func readAndParseContextFile(path string) (Contexts, error) {
+// readAndParseContextFileFromURI reads and parses the context file from an URI, which can either
+// be an URL or local path
+func readAndParseContextFileFromURI(path string) (Contexts, error) {
 	var bytes []byte
 	var err error
 
-	if path == "" {
-		bytes, err = readContextFileFromWorkingDirectory()
-	} else if strings.HasPrefix(path, "https:") {
+	if strings.HasPrefix(path, "https:") || strings.HasPrefix(path, "http:") {
 		bytes, err = readContextFileFromNetwork(path)
 	} else {
 		bytes, err = readContextFileFromFilePath(path)
 	}
 
 	if err != nil {
-		return Contexts{}, fmt.Errorf("failed to read contextfile: %w", err)
+		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
 	return parseContextFile(bytes)
 }
 
-// ReadAndParseContextFile reads the context file and returns the contexts. It starts by reading from current working directory
-// and resolves all parent context files
-func ReadAndParseContextFile() (Contexts, error) {
-	return readAndParseContextFile("")
+// LoadContexts reads the context file and returns the contexts. It starts by reading from current
+// working directory and resolves all parent context files.
+func LoadContexts() (Contexts, error) {
+	bytes, err := readContextFileFromWorkingDirectory()
+	if err != nil {
+		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
+	}
+
+	return parseContextFile(bytes)
 }

@@ -32,12 +32,12 @@ func main() {
 	rootCmd.AddCommand(start.New())
 	rootCmd.AddCommand(versioning.New(version))
 
-	getCMD := get.New()
-	getCMD.AddCommand(getcontext.New())
-	getCMD.AddCommand(getcontexts.New())
-	getCMD.AddCommand(getcontainers.New())
+	getCmd := get.New()
+	getCmd.AddCommand(getcontext.New())
+	getCmd.AddCommand(getcontexts.New())
+	getCmd.AddCommand(getcontainers.New())
 
-	rootCmd.AddCommand(getCMD)
+	rootCmd.AddCommand(getCmd)
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		os.Exit(-1)

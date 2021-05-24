@@ -22,7 +22,7 @@ func New() *cobra.Command {
 }
 
 func run() error {
-	contexts, err := yey.ReadAndParseContextFile()
+	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}

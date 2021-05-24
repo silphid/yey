@@ -12,7 +12,7 @@ import (
 
 func loadContext(file string) Context {
 	path := filepath.Join("testdata", file+".yaml")
-	contexts, err := readAndParseContextFile(path)
+	contexts, err := readAndParseContextFileFromURI(path)
 	if err != nil {
 		panic(fmt.Errorf("loading context from %q: %w", path, err))
 	}
