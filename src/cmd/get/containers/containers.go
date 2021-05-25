@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -22,9 +23,11 @@ func New() *cobra.Command {
 }
 
 func run(ctx context.Context) error {
-	api, err := docker.NewAPI()
+	cli := docker.NewCLI()
+	names, err := cli.ListContainers(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to connect to docker client: %w", err)
+		return err
 	}
-	return api.ListContainers(ctx)
+	fmt.Println(strings.Join(names, "\n"))
+	return nil
 }

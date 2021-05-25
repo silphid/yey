@@ -10,10 +10,12 @@ import (
 
 // Context represents execution configuration for some docker container
 type Context struct {
-	Name   string `yaml:",omitempty"`
-	Image  string
-	Env    map[string]string
-	Mounts map[string]string
+	Name       string `yaml:",omitempty"`
+	Image      string
+	Env        map[string]string
+	Mounts     map[string]string
+	Cmd        []string
+	EntryPoint []string
 }
 
 // Clone returns a deep-copy of this context
