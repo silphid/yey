@@ -22,7 +22,7 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error 
 	case "":
 		return runContainer(ctx, yeyCtx, containerName)
 	case "exited":
-		return startContainer(ctx, containerName, yeyCtx.Cmd)
+		return startContainer(ctx, containerName)
 	case "running":
 		return execContainer(ctx, containerName, yeyCtx.Cmd)
 	default:
@@ -95,9 +95,8 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string)
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
-func startContainer(ctx context.Context, containerName string, cmd []string) error {
-	args := append([]string{"start", "-i", containerName}, cmd...)
-	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+func startContainer(ctx context.Context, containerName string) error {
+	return attachStdPipes(exec.CommandContext(ctx, "docker", "start", "-i", containerName)).Run()
 }
 
 func execContainer(ctx context.Context, containerName string, cmd []string) error {
