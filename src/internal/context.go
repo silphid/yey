@@ -60,7 +60,3 @@ func (c Context) String() string {
 	}
 	return string(buf)
 }
-
-func (c Context) Hash() string {
-	return hash(c.String())
-}

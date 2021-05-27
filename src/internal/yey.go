@@ -18,8 +18,8 @@ func ContainerName(contextsPath string, context Context) string {
 	return fmt.Sprintf(
 		"yey-%s-%s-%s-%s",
 		filepath.Base(filepath.Dir(contextsPath)),
-		hash(contextsPath),
 		context.Name,
-		context.Hash(),
+		hash(contextsPath),
+		hash(context.String()),
 	)
 }
