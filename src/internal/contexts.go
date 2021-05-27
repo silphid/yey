@@ -11,6 +11,7 @@ const (
 
 // Contexts represents a combinaison of base and named contexts
 type Contexts struct {
+	Path    string `yaml:"-"`
 	Context `yaml:",inline"`
 	Named   map[string]Context
 }

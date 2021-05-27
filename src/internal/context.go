@@ -1,10 +1,6 @@
 package yey
 
 import (
-	"encoding/hex"
-	"hash/crc64"
-	"io"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -63,10 +59,4 @@ func (c Context) String() string {
 		panic(err)
 	}
 	return string(buf)
-}
-
-func (c Context) Hash() string {
-	hasher := crc64.New(crc64.MakeTable(crc64.ECMA))
-	io.WriteString(hasher, c.String())
-	return hex.EncodeToString(hasher.Sum(nil))
 }

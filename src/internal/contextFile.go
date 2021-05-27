@@ -25,11 +25,12 @@ type ContextFile struct {
 }
 
 // readContextFileFromWorkingDirectory scans the current directory and searches for a .yeyrc.yaml file and returns
-// the bytes in the file, and an error if encountered. If none is found it climbs the directory hierarchy.
-func readContextFileFromWorkingDirectory() ([]byte, error) {
+// the bytes in the file, the absolute path to contextFile and an error if encountered.
+// If none is found it climbs the directory hierarchy.
+func readContextFileFromWorkingDirectory() ([]byte, string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	for {
@@ -38,17 +39,17 @@ func readContextFileFromWorkingDirectory() ([]byte, error) {
 
 		if errors.Is(err, os.ErrNotExist) {
 			if wd == "/" {
-				return nil, fmt.Errorf("no .yeyrc.yaml in directory hierarchy")
+				return nil, "", fmt.Errorf("no .yeyrc.yaml in directory hierarchy")
 			}
 			wd = filepath.Join(wd, "..")
 			continue
 		}
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to read context file: %w", err)
+			return nil, "", fmt.Errorf("failed to read context file: %w", err)
 		}
 
-		return data, nil
+		return data, candidate, nil
 	}
 }
 
@@ -121,10 +122,16 @@ func readAndParseContextFileFromURI(path string) (Contexts, error) {
 // LoadContexts reads the context file and returns the contexts. It starts by reading from current
 // working directory and resolves all parent context files.
 func LoadContexts() (Contexts, error) {
-	bytes, err := readContextFileFromWorkingDirectory()
+	bytes, path, err := readContextFileFromWorkingDirectory()
 	if err != nil {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
-	return parseContextFile(bytes)
+	contexts, err := parseContextFile(bytes)
+	if err != nil {
+		return Contexts{}, err
+	}
+	contexts.Path = path
+
+	return contexts, nil
 }
