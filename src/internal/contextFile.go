@@ -122,7 +122,7 @@ func readAndParseContextFileFromURI(path string) (Contexts, error) {
 // LoadContexts reads the context file and returns the contexts. It starts by reading from current
 // working directory and resolves all parent context files.
 func LoadContexts() (Contexts, error) {
-	bytes, rootRCFile, err := readContextFileFromWorkingDirectory()
+	bytes, path, err := readContextFileFromWorkingDirectory()
 	if err != nil {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
@@ -131,7 +131,7 @@ func LoadContexts() (Contexts, error) {
 	if err != nil {
 		return Contexts{}, err
 	}
-	contexts.Path = rootRCFile
+	contexts.Path = path
 
 	return contexts, nil
 }
