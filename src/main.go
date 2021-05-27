@@ -13,7 +13,7 @@ import (
 	getcontext "github.com/silphid/yey/src/cmd/get/context"
 	getcontexts "github.com/silphid/yey/src/cmd/get/contexts"
 
-	"github.com/silphid/yey/src/cmd/start"
+	"github.com/silphid/yey/src/cmd/run"
 	"github.com/silphid/yey/src/cmd/versioning"
 )
 
@@ -29,7 +29,7 @@ func main() {
 	}()
 
 	rootCmd := cmd.NewRoot()
-	rootCmd.AddCommand(start.New())
+	rootCmd.AddCommand(run.New())
 	rootCmd.AddCommand(versioning.New(version))
 
 	getCmd := get.New()
