@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -52,6 +53,7 @@ func ListContainers(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	output = bytes.TrimSpace(output)
 	return newlines.Split(string(output), -1), nil
 }
 
