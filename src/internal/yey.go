@@ -14,12 +14,12 @@ func hash(value string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func ContainerName(contextsPath string, context Context) string {
+func ContainerName(path string, context Context) string {
 	return fmt.Sprintf(
 		"yey-%s-%s-%s-%s",
-		filepath.Base(filepath.Dir(contextsPath)),
+		filepath.Base(filepath.Dir(path)),
+		hash(path),
 		context.Name,
-		hash(contextsPath),
 		hash(context.String()),
 	)
 }
