@@ -25,7 +25,8 @@ type ContextFile struct {
 }
 
 // readContextFileFromWorkingDirectory scans the current directory and searches for a .yeyrc.yaml file and returns
-// the bytes in the file, and an error if encountered. If none is found it climbs the directory hierarchy.
+// the bytes in the file, the absolute path to contextFile and an error if encountered.
+// If none is found it climbs the directory hierarchy.
 func readContextFileFromWorkingDirectory() ([]byte, string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
