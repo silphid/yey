@@ -1,4 +1,4 @@
-package start
+package run
 
 import (
 	"context"
@@ -17,8 +17,8 @@ func New() *cobra.Command {
 	options := Options{Remove: new(bool)}
 
 	cmd := &cobra.Command{
-		Use:   "start",
-		Short: "Starts container",
+		Use:   "run",
+		Short: "Runs container using given context",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := ""
