@@ -84,32 +84,32 @@ func TestMerge(t *testing.T) {
 
 func TestSameHashesForSameContexts(t *testing.T) {
 	ctx1 := getCtx1()
-	hash1 := hash(ctx1.String())
+	hash1 := Hash(ctx1.String())
 
 	ctx2 := getCtx1()
-	hash2 := hash(ctx2.String())
+	hash2 := Hash(ctx2.String())
 
 	assert.Equal(t, hash1, hash2)
 }
 
 func TestDifferentHashesForDifferentEnvs(t *testing.T) {
 	ctx1 := getCtx1()
-	hash1 := hash(ctx1.String())
+	hash1 := Hash(ctx1.String())
 
 	ctx2 := getCtx1()
 	ctx2.Env["ENV1"] = "value1b"
-	hash2 := hash(ctx2.String())
+	hash2 := Hash(ctx2.String())
 
 	assert.NotEqual(t, hash1, hash2)
 }
 
 func TestDifferentHashesForDifferentMounts(t *testing.T) {
 	ctx1 := getCtx1()
-	hash1 := hash(ctx1.String())
+	hash1 := Hash(ctx1.String())
 
 	ctx2 := getCtx1()
 	ctx2.Mounts["/local/mount1"] = "/container/mount1b"
-	hash2 := hash(ctx2.String())
+	hash2 := Hash(ctx2.String())
 
 	assert.NotEqual(t, hash1, hash2)
 }
