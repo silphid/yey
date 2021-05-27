@@ -31,6 +31,19 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error 
 	}
 }
 
+func Remove(ctx context.Context, containerName string) error {
+	status, err := getContainerStatus(ctx, containerName)
+	if err != nil {
+		return err
+	}
+
+	if status == "" {
+		return nil
+	}
+
+	return attachStdPipes(exec.CommandContext(ctx, "docker", "rm", "-v", containerName)).Run()
+}
+
 var newlines = regexp.MustCompile(`\r?\n`)
 
 func ListContainers(ctx context.Context) ([]string, error) {

@@ -32,13 +32,15 @@ func New() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(options.Remove, "rm", false, "removes container if true after exit")
+	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
+	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
 
 	return cmd
 }
 
 type Options struct {
 	Remove *bool
+	Reset  bool
 }
 
 func run(ctx context.Context, name string, options Options) error {
@@ -69,6 +71,12 @@ func run(ctx context.Context, name string, options Options) error {
 	}
 
 	containerName := fmt.Sprintf("yey-%s-%s-%s", shortImageName, yeyContext.Name, yeyContext.Hash())
+
+	if options.Reset {
+		if err := docker.Remove(ctx, containerName); err != nil {
+			return fmt.Errorf("failed to remove container %q: %w", containerName, err)
+		}
+	}
 
 	return docker.Start(ctx, yeyContext, containerName)
 }
