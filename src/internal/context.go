@@ -62,5 +62,5 @@ func (c Context) String() string {
 }
 
 func (c Context) Hash() string {
-	return Hash(c.String())
+	return hash(c.String())
 }
