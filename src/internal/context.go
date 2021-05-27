@@ -11,7 +11,7 @@ import (
 // Context represents execution configuration for some docker container
 type Context struct {
 	Name       string `yaml:",omitempty"`
-	Remove     bool
+	Remove     *bool
 	Image      string
 	Env        map[string]string
 	Mounts     map[string]string
@@ -22,6 +22,10 @@ type Context struct {
 // Clone returns a deep-copy of this context
 func (c Context) Clone() Context {
 	clone := c
+	if clone.Remove != nil {
+		value := *clone.Remove
+		clone.Remove = &value
+	}
 	clone.Env = make(map[string]string)
 	for key, value := range c.Env {
 		clone.Env[key] = value
@@ -36,6 +40,10 @@ func (c Context) Clone() Context {
 // Merge creates a deep-copy of this context and copies values from given source context on top of it
 func (c Context) Merge(source Context) Context {
 	merged := c.Clone()
+	if source.Remove != nil {
+		value := *source.Remove
+		merged.Remove = &value
+	}
 	if source.Image != "" {
 		merged.Image = source.Image
 	}

@@ -92,6 +92,10 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string)
 		)
 	}
 
+	if yeyCtx.Remove != nil && *yeyCtx.Remove {
+		args = append(args, "--rm")
+	}
+
 	args = append(args, yeyCtx.Image)
 	args = append(args, yeyCtx.Cmd...)
 
