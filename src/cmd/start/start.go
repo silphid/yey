@@ -32,8 +32,8 @@ func New() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(options.Remove, "rm", false, "removes container if true after exit")
-	cmd.Flags().BoolVar(&options.Reset, "reset", false, "when true will remove a previous container instance and start a fresh run")
+	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
+	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
 
 	return cmd
 }
