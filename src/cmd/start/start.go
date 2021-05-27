@@ -54,10 +54,5 @@ func run(ctx context.Context, name string) error {
 
 	containerName := fmt.Sprintf("yey-%s-%s-%s", shortImageName, yeyContext.Name, yeyContext.Hash())
 
-	api, err := docker.NewAPI()
-	if err != nil {
-		return fmt.Errorf("failed to connect to docker client: %w", err)
-	}
-
-	return api.Start(ctx, yeyContext, containerName)
+	return docker.Start(ctx, yeyContext, containerName)
 }
