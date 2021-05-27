@@ -16,7 +16,7 @@ import (
 func New() *cobra.Command {
 	return &cobra.Command{
 		Use:   "tidy",
-		Short: "cleans unreferenced project containers",
+		Short: "Removes unreferenced containers",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context())
