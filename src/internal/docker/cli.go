@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -30,13 +31,15 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error 
 	}
 }
 
+var newlines = regexp.MustCompile(`\r?\n`)
+
 func ListContainers(ctx context.Context) ([]string, error) {
 	cmd := exec.Command("docker", "ps", "--all", "--filter", "name=yey-*", "--format", "{{.Names}}")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
-	return strings.Split(string(output), "\n"), nil
+	return newlines.Split(string(output), -1), nil
 }
 
 func getContainerStatus(ctx context.Context, name string) (string, error) {
@@ -61,12 +64,12 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string)
 
 	args := []string{
 		"run",
-		"--name", containerName,
 		"-it",
-		// "--env LS_COLORS",
-		// "--env TERM",
-		// "--env TERM_COLOR",
-		// "--env TERM_PROGRAM",
+		"--name", containerName,
+		"--env", "LS_COLORS",
+		"--env", "TERM",
+		"--env", "TERM_COLOR",
+		"--env", "TERM_PROGRAM",
 		"--env", "YEY_WORK_DIR=" + cwd,
 		"--env", "YEY_CONTEXT=" + yeyCtx.Name,
 	}

@@ -11,6 +11,7 @@ import (
 // Context represents execution configuration for some docker container
 type Context struct {
 	Name       string `yaml:",omitempty"`
+	Remove     bool
 	Image      string
 	Env        map[string]string
 	Mounts     map[string]string

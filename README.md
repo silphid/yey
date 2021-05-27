@@ -138,10 +138,16 @@ contexts:
 # Ideas/questions
 
 - yey!
-- Do we really need a default/current context (instead of always specifying)
 - Do we really need to names containers with tag?
-- Simplify context file format
-  - .yeyrc
-  - Move base to top level?
-- Default user.yaml could be just shared.yaml initially all commented out
-- No different naming (user.yaml/shared.yaml), just `.yeyrc` or `.yey.yaml`
+
+- yey start flags: --rm && --reset
+
+- yey user support??? can we run our containers as not root via context config or otherwise? SPIKE
+
+- Currently we have image support in contextFile, how about Dockerfile support? BOOM
+
+- yey rm [contextName/prompt] -> removes containers with prefix yey-pathHash-contextName-\*
+
+  - rm --all remove all contexts
+
+- yey tidy -> removes containers from all context names that are not references: yey-pathHash-contextNames-notusedContextHash
