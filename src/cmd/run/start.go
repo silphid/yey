@@ -18,7 +18,7 @@ func New() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "run",
-		Short: "runs container",
+		Short: "Runs container using given context",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := ""
