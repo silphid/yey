@@ -65,12 +65,7 @@ func run(ctx context.Context, name string, options Options) error {
 		yeyContext.Remove = options.Remove
 	}
 
-	shortImageName, err := docker.GetShortImageName(yeyContext.Image)
-	if err != nil {
-		return fmt.Errorf("failed to get short image name for context.image: %w", err)
-	}
-
-	containerName := fmt.Sprintf("yey-%s-%s-%s", shortImageName, yeyContext.Name, yeyContext.Hash())
+	containerName := yey.ContainerName(contexts.Path, yeyContext)
 
 	if options.Reset {
 		if err := docker.Remove(ctx, containerName); err != nil {
