@@ -14,7 +14,9 @@ import (
 
 // New creates a cobra command
 func New() *cobra.Command {
-	return &cobra.Command{
+	options := Options{Remove: new(bool)}
+
+	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts container",
 		Args:  cobra.RangeArgs(0, 1),
@@ -23,12 +25,23 @@ func New() *cobra.Command {
 			if len(args) == 1 {
 				name = args[0]
 			}
-			return run(cmd.Context(), name)
+			if !cmd.Flag("rm").Changed {
+				options.Remove = nil
+			}
+			return run(cmd.Context(), name, options)
 		},
 	}
+
+	cmd.Flags().BoolVar(options.Remove, "rm", false, "removes container if true after exit")
+
+	return cmd
 }
 
-func run(ctx context.Context, name string) error {
+type Options struct {
+	Remove *bool
+}
+
+func run(ctx context.Context, name string, options Options) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
@@ -45,6 +58,9 @@ func run(ctx context.Context, name string) error {
 	yeyContext, err := contexts.GetContext(name)
 	if err != nil {
 		return fmt.Errorf("failed to get context with name %q: %w", name, err)
+	}
+	if options.Remove != nil {
+		yeyContext.Remove = options.Remove
 	}
 
 	shortImageName, err := docker.GetShortImageName(yeyContext.Image)
