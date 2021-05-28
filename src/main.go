@@ -8,6 +8,7 @@ import (
 	"github.com/silphid/yey/src/cmd"
 
 	"github.com/silphid/yey/src/cmd/get"
+	"github.com/silphid/yey/src/cmd/remove"
 
 	getcontainers "github.com/silphid/yey/src/cmd/get/containers"
 	getcontext "github.com/silphid/yey/src/cmd/get/context"
@@ -33,6 +34,7 @@ func main() {
 	rootCmd.AddCommand(run.New())
 	rootCmd.AddCommand(versioning.New(version))
 	rootCmd.AddCommand(tidy.New())
+	rootCmd.AddCommand(remove.New())
 
 	getCmd := get.New()
 	getCmd.AddCommand(getcontext.New())
