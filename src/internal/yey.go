@@ -56,3 +56,7 @@ func ContainerPathPrefix(path string) string {
 	}
 	return fmt.Sprintf("yey-%s-%s", pathBase, hash(path))
 }
+
+func ImageName(dockerfile []byte) string {
+	return fmt.Sprintf("yey-%s", hash(string(dockerfile)))
+}

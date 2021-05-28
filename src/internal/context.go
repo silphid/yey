@@ -4,11 +4,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type DockerBuild struct {
+	Dockerfile string
+	Args       map[string]string
+	Context    string
+}
+
 // Context represents execution configuration for some docker container
 type Context struct {
 	Name       string `yaml:",omitempty"`
 	Remove     *bool
 	Image      string
+	Build      DockerBuild
 	Env        map[string]string
 	Mounts     map[string]string
 	Cmd        []string
@@ -30,6 +37,10 @@ func (c Context) Clone() Context {
 	for key, value := range c.Mounts {
 		clone.Mounts[key] = value
 	}
+	clone.Build.Args = make(map[string]string)
+	for key, value := range c.Build.Args {
+		clone.Build.Args[key] = value
+	}
 	return clone
 }
 
@@ -48,6 +59,15 @@ func (c Context) Merge(source Context) Context {
 	}
 	for key, value := range source.Mounts {
 		merged.Mounts[key] = value
+	}
+	if source.Build.Dockerfile != "" {
+		merged.Build.Dockerfile = source.Build.Dockerfile
+	}
+	if source.Build.Context != "" {
+		merged.Build.Context = source.Build.Context
+	}
+	for key, value := range source.Build.Args {
+		merged.Build.Args[key] = value
 	}
 	return merged
 }
