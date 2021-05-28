@@ -83,10 +83,13 @@ func ListContainers(ctx context.Context) ([]string, error) {
 
 func imageExists(ctx context.Context, tag string) (bool, error) {
 	output, err := exec.CommandContext(ctx, "docker", "image", "inspect", tag).Output()
+	if string(bytes.TrimSpace(output)) == "[]" {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}
-	return string(bytes.TrimSpace(output)) != "[]", nil
+	return true, nil
 }
 
 func getContainerStatus(ctx context.Context, name string) (string, error) {

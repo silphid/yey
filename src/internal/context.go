@@ -63,6 +63,9 @@ func (c Context) Merge(source Context) Context {
 	if source.Build.Dockerfile != "" {
 		merged.Build.Dockerfile = source.Build.Dockerfile
 	}
+	if source.Build.Context != "" {
+		merged.Build.Context = source.Build.Context
+	}
 	for key, value := range source.Build.Args {
 		merged.Build.Args[key] = value
 	}
