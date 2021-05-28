@@ -2,8 +2,6 @@ package tidy
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -39,11 +37,7 @@ func run(ctx context.Context) error {
 		validNames[yey.ContainerName(contexts.Path, ctx)] = struct{}{}
 	}
 
-	prefix := fmt.Sprintf(
-		"yey-%s-%s",
-		filepath.Base(filepath.Dir(contexts.Path)),
-		yey.Hash(contexts.Path),
-	)
+	prefix := yey.ContainerPathPrefix(contexts.Path)
 
 	names, err := docker.ListContainers(ctx)
 	if err != nil {
