@@ -74,7 +74,7 @@ func readContextFileFromNetwork(url string) ([]byte, error) {
 }
 
 // parseContextFile unmarshals the contextFile data and resolves any parent contextfiles
-func parseContextFile(data []byte) (Contexts, error) {
+func parseContextFile(root string, data []byte) (Contexts, error) {
 	var ctxFile ContextFile
 	if err := yaml.Unmarshal(data, &ctxFile); err != nil {
 		return Contexts{}, fmt.Errorf("failed to decode context file: %w", err)
@@ -87,6 +87,13 @@ func parseContextFile(data []byte) (Contexts, error) {
 	contexts := Contexts{
 		Context: ctxFile.Context,
 		Named:   ctxFile.Named,
+	}
+
+	if root != "" {
+		contexts.Context = resolveContextPaths(root, contexts.Context)
+		for name, context := range contexts.Named {
+			contexts.Named[name] = resolveContextPaths(root, context)
+		}
 	}
 
 	if ctxFile.Parent != "" {
@@ -105,10 +112,12 @@ func parseContextFile(data []byte) (Contexts, error) {
 func readAndParseContextFileFromURI(path string) (Contexts, error) {
 	var bytes []byte
 	var err error
+	var root string
 
 	if strings.HasPrefix(path, "https:") || strings.HasPrefix(path, "http:") {
 		bytes, err = readContextFileFromNetwork(path)
 	} else {
+		root = filepath.Dir(path)
 		bytes, err = readContextFileFromFilePath(path)
 	}
 
@@ -116,7 +125,7 @@ func readAndParseContextFileFromURI(path string) (Contexts, error) {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
-	return parseContextFile(bytes)
+	return parseContextFile(root, bytes)
 }
 
 // LoadContexts reads the context file and returns the contexts. It starts by reading from current
@@ -127,11 +136,31 @@ func LoadContexts() (Contexts, error) {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
-	contexts, err := parseContextFile(bytes)
+	contexts, err := parseContextFile(filepath.Dir(path), bytes)
 	if err != nil {
 		return Contexts{}, err
 	}
 	contexts.Path = path
 
 	return contexts, nil
+}
+
+func resolveContextPaths(root string, context Context) Context {
+	clone := context.Clone()
+	clone.Build.Dockerfile = resolvePath(root, context.Build.Dockerfile)
+	clone.Build.Context = resolvePath(root, clone.Build.Context)
+	for key, value := range clone.Mounts {
+		clone.Mounts[resolvePath(root, key)] = value
+	}
+	return clone
+}
+
+func resolvePath(root, path string) string {
+	if path == "" {
+		return ""
+	}
+	if strings.HasPrefix(path, "/") {
+		return path
+	}
+	return filepath.Join(root, path)
 }

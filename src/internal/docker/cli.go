@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -43,6 +44,19 @@ func Remove(ctx context.Context, containerName string) error {
 	}
 
 	return attachStdPipes(exec.CommandContext(ctx, "docker", "rm", "-v", containerName)).Run()
+}
+
+func Build(ctx context.Context, dockerPath string, imageName string, buildArgs map[string]string, context string) error {
+	args := []string{"build", "-f", dockerPath, "-t", imageName}
+	for key, value := range buildArgs {
+		args = append(args, "--build-arg", fmt.Sprintf("%s=%q", key, value))
+	}
+	if context == "" {
+		context = filepath.Dir(dockerPath)
+	}
+	args = append(args, context)
+
+	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
 var newlines = regexp.MustCompile(`\r?\n`)
