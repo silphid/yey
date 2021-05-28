@@ -12,7 +12,7 @@ import (
 	getcontainers "github.com/silphid/yey/src/cmd/get/containers"
 	getcontext "github.com/silphid/yey/src/cmd/get/context"
 	getcontexts "github.com/silphid/yey/src/cmd/get/contexts"
-	"github.com/silphid/yey/src/cmd/get/tidy"
+	"github.com/silphid/yey/src/cmd/tidy"
 
 	"github.com/silphid/yey/src/cmd/run"
 	"github.com/silphid/yey/src/cmd/versioning"
