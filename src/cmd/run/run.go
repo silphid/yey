@@ -73,7 +73,7 @@ func run(ctx context.Context, name string, options Options) error {
 		if err != nil {
 			return fmt.Errorf("failed to build yey context image: %w", err)
 		}
-		logging.Log("built image: %s", yeyContext.Image)
+		logging.Log("using image: %s", yeyContext.Image)
 	}
 
 	containerName := yey.ContainerName(contexts.Path, yeyContext)

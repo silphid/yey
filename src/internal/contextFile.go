@@ -74,7 +74,7 @@ func readContextFileFromNetwork(url string) ([]byte, error) {
 }
 
 // parseContextFile unmarshals the contextFile data and resolves any parent contextfiles
-func parseContextFile(root string, data []byte) (Contexts, error) {
+func parseContextFile(dir string, data []byte) (Contexts, error) {
 	var ctxFile ContextFile
 	if err := yaml.Unmarshal(data, &ctxFile); err != nil {
 		return Contexts{}, fmt.Errorf("failed to decode context file: %w", err)
@@ -89,10 +89,10 @@ func parseContextFile(root string, data []byte) (Contexts, error) {
 		Named:   ctxFile.Named,
 	}
 
-	if root != "" {
-		contexts.Context = resolveContextPaths(root, contexts.Context)
+	if dir != "" {
+		contexts.Context = resolveContextPaths(dir, contexts.Context)
 		for name, context := range contexts.Named {
-			contexts.Named[name] = resolveContextPaths(root, context)
+			contexts.Named[name] = resolveContextPaths(dir, context)
 		}
 	}
 
@@ -112,12 +112,12 @@ func parseContextFile(root string, data []byte) (Contexts, error) {
 func readAndParseContextFileFromURI(path string) (Contexts, error) {
 	var bytes []byte
 	var err error
-	var root string
+	var dir string
 
 	if strings.HasPrefix(path, "https:") || strings.HasPrefix(path, "http:") {
 		bytes, err = readContextFileFromNetwork(path)
 	} else {
-		root = filepath.Dir(path)
+		dir = filepath.Dir(path)
 		bytes, err = readContextFileFromFilePath(path)
 	}
 
@@ -125,7 +125,7 @@ func readAndParseContextFileFromURI(path string) (Contexts, error) {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
-	return parseContextFile(root, bytes)
+	return parseContextFile(dir, bytes)
 }
 
 // LoadContexts reads the context file and returns the contexts. It starts by reading from current
@@ -145,22 +145,24 @@ func LoadContexts() (Contexts, error) {
 	return contexts, nil
 }
 
-func resolveContextPaths(root string, context Context) Context {
+func resolveContextPaths(dir string, context Context) Context {
 	clone := context.Clone()
-	clone.Build.Dockerfile = resolvePath(root, context.Build.Dockerfile)
-	clone.Build.Context = resolvePath(root, clone.Build.Context)
+	clone.Build.Dockerfile = resolvePath(dir, context.Build.Dockerfile)
+	clone.Build.Context = resolvePath(dir, clone.Build.Context)
 	for key, value := range clone.Mounts {
-		clone.Mounts[resolvePath(root, key)] = value
+		clone.Mounts[resolvePath(dir, key)] = value
 	}
 	return clone
 }
 
-func resolvePath(root, path string) string {
+func resolvePath(dir, path string) string {
 	if path == "" {
 		return ""
 	}
-	if strings.HasPrefix(path, "/") {
+
+	if filepath.IsAbs(path) {
 		return path
 	}
-	return filepath.Join(root, path)
+
+	return filepath.Join(dir, path)
 }
