@@ -129,11 +129,7 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName, workDi
 	}
 
 	// Mount binds
-	mounts, err := yeyCtx.ResolveMounts()
-	if err != nil {
-		return err
-	}
-	for key, value := range mounts {
+	for key, value := range yeyCtx.Mounts {
 		args = append(
 			args,
 			"--volume",

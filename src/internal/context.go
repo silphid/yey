@@ -1,9 +1,6 @@
 package yey
 
 import (
-	"path/filepath"
-
-	"github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 )
 
@@ -82,35 +79,4 @@ func (c Context) String() string {
 		panic(err)
 	}
 	return string(buf)
-}
-
-func (c Context) ResolveMounts() (map[string]string, error) {
-	mounts := make(map[string]string, len(c.Mounts))
-	for key, value := range c.Mounts {
-		dir, err := resolveLocalDir(key)
-		if err != nil {
-			return nil, err
-		}
-		mounts[dir] = value
-	}
-	return mounts, nil
-}
-
-func resolveLocalDir(dir string) (string, error) {
-	var err error
-	if dir == "~" {
-		dir, err = homedir.Dir()
-	} else {
-		dir, err = homedir.Expand(dir)
-	}
-	if err != nil {
-		return "", err
-	}
-
-	dir, err = filepath.Abs(dir)
-	if err != nil {
-		return "", err
-	}
-
-	return dir, nil
 }

@@ -100,14 +100,15 @@ func getContainerWorkDir(yeyContext yey.Context) (string, error) {
 		return "", err
 	}
 
-	mounts, err := yeyContext.ResolveMounts()
-	if err != nil {
-		return "", err
-	}
+	for key, value := range yeyContext.Mounts {
+		// Where is work dir relatively to mount dir?
+		subDir, err := filepath.Rel(key, workDir)
+		if err != nil {
+			return "", err
+		}
 
-	for key, value := range mounts {
-		if strings.HasPrefix(workDir, key) {
-			subDir := strings.TrimPrefix(workDir, key)
+		// Is work dir within mount dir?
+		if !strings.HasPrefix(subDir, fmt.Sprintf("..%c", filepath.Separator)) {
 			return filepath.Join(value, subDir), nil
 		}
 	}
