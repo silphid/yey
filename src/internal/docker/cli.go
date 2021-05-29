@@ -9,11 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mitchellh/go-homedir"
 	yey "github.com/silphid/yey/src/internal"
 )
 
-func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error {
+func Start(ctx context.Context, yeyCtx yey.Context, containerName, workDir string) error {
 	// Determine whether we need to run or exec container
 	status, err := getContainerStatus(ctx, containerName)
 	if err != nil {
@@ -22,11 +21,11 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error 
 
 	switch status {
 	case "":
-		return runContainer(ctx, yeyCtx, containerName)
+		return runContainer(ctx, yeyCtx, containerName, workDir)
 	case "exited":
 		return startContainer(ctx, containerName)
 	case "running":
-		return execContainer(ctx, containerName, yeyCtx.Cmd)
+		return execContainer(ctx, containerName, workDir, yeyCtx.Cmd)
 	default:
 		return fmt.Errorf("container %q in unexpected state %q", containerName, status)
 	}
@@ -71,7 +70,7 @@ func getContainerStatus(ctx context.Context, name string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string) error {
+func runContainer(ctx context.Context, yeyCtx yey.Context, containerName, workDir string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -94,21 +93,25 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string)
 		args = append(args, "--env", fmt.Sprintf("%s=%s", name, value))
 	}
 
-	home, err := homedir.Dir()
+	// Mount binds
+	mounts, err := yeyCtx.ResolveMounts()
 	if err != nil {
-		return fmt.Errorf("failed to detect user home directory: %w", err)
+		return err
 	}
-
-	for key, value := range yeyCtx.Mounts {
+	for key, value := range mounts {
 		args = append(
 			args,
 			"--volume",
-			fmt.Sprintf("%s:%s", strings.ReplaceAll(key, "$HOME", home), value),
+			fmt.Sprintf("%s:%s", key, value),
 		)
 	}
 
 	if yeyCtx.Remove != nil && *yeyCtx.Remove {
 		args = append(args, "--rm")
+	}
+
+	if workDir != "" {
+		args = append(args, "--workdir", workDir)
 	}
 
 	args = append(args, yeyCtx.Image)
@@ -121,8 +124,13 @@ func startContainer(ctx context.Context, containerName string) error {
 	return attachStdPipes(exec.CommandContext(ctx, "docker", "start", "-i", containerName)).Run()
 }
 
-func execContainer(ctx context.Context, containerName string, cmd []string) error {
-	args := append([]string{"exec", "-ti", containerName}, cmd...)
+func execContainer(ctx context.Context, containerName, workDir string, cmd []string) error {
+	args := []string{"exec", "-ti"}
+	if workDir != "" {
+		args = append(args, "--workdir", workDir)
+	}
+	args = append(args, containerName)
+	args = append(args, cmd...)
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 

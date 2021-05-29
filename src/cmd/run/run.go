@@ -3,6 +3,9 @@ package run
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/docker"
@@ -73,5 +76,31 @@ func run(ctx context.Context, name string, options Options) error {
 		}
 	}
 
-	return docker.Start(ctx, yeyContext, containerName)
+	workDir, err := getContainerWorkDir(yeyContext)
+	if err != nil {
+		return err
+	}
+
+	return docker.Start(ctx, yeyContext, containerName, workDir)
+}
+
+func getContainerWorkDir(yeyContext yey.Context) (string, error) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	mounts, err := yeyContext.ResolveMounts()
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range mounts {
+		if strings.HasPrefix(workDir, key) {
+			subDir := strings.TrimPrefix(workDir, key)
+			return filepath.Join(value, subDir), nil
+		}
+	}
+
+	return "", nil
 }
