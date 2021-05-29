@@ -9,6 +9,7 @@ import (
 
 	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/docker"
+	"github.com/silphid/yey/src/internal/logging"
 
 	"github.com/silphid/yey/src/cmd"
 
@@ -68,6 +69,15 @@ func run(ctx context.Context, name string, options Options) error {
 		yeyContext.Remove = options.Remove
 	}
 
+	if yeyContext.Image == "" {
+		var err error
+		yeyContext.Image, err = readAndBuildDockerfile(ctx, yeyContext.Build)
+		if err != nil {
+			return fmt.Errorf("failed to build yey context image: %w", err)
+		}
+		logging.Log("using image: %s", yeyContext.Image)
+	}
+
 	containerName := yey.ContainerName(contexts.Path, yeyContext)
 
 	if options.Reset {
@@ -103,4 +113,19 @@ func getContainerWorkDir(yeyContext yey.Context) (string, error) {
 	}
 
 	return "", nil
+}
+
+func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild) (string, error) {
+	dockerBytes, err := os.ReadFile(build.Dockerfile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read dockerfile: %w", err)
+	}
+
+	imageName := yey.ImageName(dockerBytes)
+
+	if err := docker.Build(ctx, build.Dockerfile, imageName, build.Args, build.Context); err != nil {
+		return "", fmt.Errorf("failed to build image: %w", err)
+	}
+
+	return imageName, nil
 }
