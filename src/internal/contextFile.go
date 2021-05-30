@@ -91,15 +91,9 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 
 	if dir != "" {
 		var err error
-		contexts.Context, err = resolveContextPaths(dir, contexts.Context)
+		contexts, err = resolveContextsPaths(dir, contexts)
 		if err != nil {
 			return Contexts{}, err
-		}
-		for name, context := range contexts.Named {
-			contexts.Named[name], err = resolveContextPaths(dir, context)
-			if err != nil {
-				return Contexts{}, err
-			}
 		}
 	}
 
@@ -149,6 +143,21 @@ func LoadContexts() (Contexts, error) {
 	}
 	contexts.Path = path
 
+	return contexts, nil
+}
+
+func resolveContextsPaths(dir string, contexts Contexts) (Contexts, error) {
+	var err error
+	contexts.Context, err = resolveContextPaths(dir, contexts.Context)
+	if err != nil {
+		return Contexts{}, err
+	}
+	for name, context := range contexts.Named {
+		contexts.Named[name], err = resolveContextPaths(dir, context)
+		if err != nil {
+			return Contexts{}, err
+		}
+	}
 	return contexts, nil
 }
 

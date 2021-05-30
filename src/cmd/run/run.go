@@ -91,7 +91,12 @@ func run(ctx context.Context, name string, options Options) error {
 		return err
 	}
 
-	return docker.Start(ctx, yeyContext, containerName, workDir)
+	var runOptions []docker.RunOption
+	if workDir != "" {
+		runOptions = append(runOptions, docker.WithWorkdir(workDir))
+	}
+
+	return docker.Start(ctx, yeyContext, containerName, runOptions...)
 }
 
 func getContainerWorkDir(yeyContext yey.Context) (string, error) {
