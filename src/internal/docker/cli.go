@@ -34,7 +34,15 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string) error 
 	}
 }
 
-func Remove(ctx context.Context, containerName string) error {
+type removeOption struct {
+	force bool
+}
+
+type RemoveOption func(ro *removeOption)
+
+var ForceRemove RemoveOption = func(ro *removeOption) { ro.force = true }
+
+func Remove(ctx context.Context, containerName string, options ...RemoveOption) error {
 	status, err := getContainerStatus(ctx, containerName)
 	if err != nil {
 		return err
@@ -44,7 +52,26 @@ func Remove(ctx context.Context, containerName string) error {
 		return nil
 	}
 
-	return attachStdPipes(exec.CommandContext(ctx, "docker", "rm", "-v", containerName)).Run()
+	return RemoveMany(ctx, []string{containerName}, options...)
+}
+
+func RemoveMany(ctx context.Context, containers []string, options ...RemoveOption) error {
+	if len(containers) == 0 {
+		return nil
+	}
+
+	var opts removeOption
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	args := []string{"rm", "-v"}
+	if opts.force {
+		args = append(args, "-f")
+	}
+	args = append(args, containers...)
+
+	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
 func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs map[string]string, context string) error {
