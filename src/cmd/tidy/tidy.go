@@ -12,17 +12,27 @@ import (
 
 // New creates a cobra command
 func New() *cobra.Command {
-	return &cobra.Command{
+	var options options
+
+	cmd := &cobra.Command{
 		Use:   "tidy",
 		Short: "Removes unreferenced containers",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context())
+			return run(cmd.Context(), options)
 		},
 	}
+
+	cmd.Flags().BoolVarP(&options.force, "force", "f", false, "removes containers forcibly")
+
+	return cmd
 }
 
-func run(ctx context.Context) error {
+type options struct {
+	force bool
+}
+
+func run(ctx context.Context, options options) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
@@ -44,6 +54,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	var unreferencedContainers []string
 	for _, container := range names {
 		if !strings.HasPrefix(container, prefix) {
 			continue
@@ -51,10 +62,8 @@ func run(ctx context.Context) error {
 		if _, ok := validNames[container]; ok {
 			continue
 		}
-		if err := docker.Remove(ctx, container); err != nil {
-			return err
-		}
+		unreferencedContainers = append(unreferencedContainers, container)
 	}
 
-	return nil
+	return docker.RemoveMany(ctx, unreferencedContainers, docker.WithForceRemove(options.force))
 }

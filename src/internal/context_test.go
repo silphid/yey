@@ -34,6 +34,14 @@ func TestClone(t *testing.T) {
 			"/local/mount1": "/container/mount1",
 			"/local/mount2": "/container/mount2",
 		},
+		Build: DockerBuild{
+			Dockerfile: "./Dockerfile",
+			Args: map[string]string{
+				"arg1": "value1",
+				"arg2": "value2",
+			},
+			Context: ".",
+		},
 	}
 
 	clone := original.Clone()
