@@ -93,7 +93,7 @@ func run(ctx context.Context, name string, options Options) error {
 
 	var runOptions []docker.RunOption
 	if workDir != "" {
-		runOptions = append(runOptions, docker.WithWorkdir(workDir))
+		runOptions = append(runOptions, docker.WithWorkDir(workDir))
 	}
 
 	return docker.Start(ctx, yeyContext, containerName, runOptions...)

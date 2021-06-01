@@ -15,14 +15,14 @@ import (
 )
 
 type runOptions struct {
-	workdir string
+	workDir string
 }
 
 type RunOption func(*runOptions)
 
-func WithWorkdir(wd string) RunOption {
+func WithWorkDir(wd string) RunOption {
 	return func(ro *runOptions) {
-		ro.workdir = wd
+		ro.workDir = wd
 	}
 }
 
@@ -158,8 +158,8 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		args = append(args, "--rm")
 	}
 
-	if options.workdir != "" {
-		args = append(args, "--workdir", options.workdir)
+	if options.workDir != "" {
+		args = append(args, "--workdir", options.workDir)
 	}
 
 	args = append(args, yeyCtx.Image)
@@ -174,8 +174,8 @@ func startContainer(ctx context.Context, containerName string) error {
 
 func execContainer(ctx context.Context, containerName string, cmd []string, options runOptions) error {
 	args := []string{"exec", "-ti"}
-	if options.workdir != "" {
-		args = append(args, "--workdir", options.workdir)
+	if options.workDir != "" {
+		args = append(args, "--workdir", options.workDir)
 	}
 	args = append(args, containerName)
 	args = append(args, cmd...)
