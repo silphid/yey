@@ -65,10 +65,5 @@ func run(ctx context.Context, options options) error {
 		unreferencedContainers = append(unreferencedContainers, container)
 	}
 
-	var removeOptions []docker.RemoveOption
-	if options.force {
-		removeOptions = append(removeOptions, docker.ForceRemove)
-	}
-
-	return docker.RemoveMany(ctx, unreferencedContainers, removeOptions...)
+	return docker.RemoveMany(ctx, unreferencedContainers, docker.WithForceRemove(options.force))
 }

@@ -40,7 +40,11 @@ type removeOption struct {
 
 type RemoveOption func(ro *removeOption)
 
-var ForceRemove RemoveOption = func(ro *removeOption) { ro.force = true }
+func WithForceRemove(value bool) RemoveOption {
+	return func(ro *removeOption) {
+		ro.force = value
+	}
+}
 
 func Remove(ctx context.Context, containerName string, options ...RemoveOption) error {
 	status, err := getContainerStatus(ctx, containerName)

@@ -59,10 +59,5 @@ func run(ctx context.Context, name string, options options) error {
 
 	container := yey.ContainerName(contexts.Path, context)
 
-	var removeOptions []docker.RemoveOption
-	if options.force {
-		removeOptions = append(removeOptions, docker.ForceRemove)
-	}
-
-	return docker.Remove(ctx, container, removeOptions...)
+	return docker.Remove(ctx, container, docker.WithForceRemove(options.force))
 }
