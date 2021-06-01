@@ -14,7 +14,24 @@ import (
 	"github.com/silphid/yey/src/internal/logging"
 )
 
-func Start(ctx context.Context, yeyCtx yey.Context, containerName, workDir string) error {
+type runOptions struct {
+	workDir string
+}
+
+type RunOption func(*runOptions)
+
+func WithWorkDir(wd string) RunOption {
+	return func(ro *runOptions) {
+		ro.workDir = wd
+	}
+}
+
+func Start(ctx context.Context, yeyCtx yey.Context, containerName string, opts ...RunOption) error {
+	var options runOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	// Determine whether we need to run or exec container
 	status, err := getContainerStatus(ctx, containerName)
 	if err != nil {
@@ -23,11 +40,11 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName, workDir strin
 
 	switch status {
 	case "":
-		return runContainer(ctx, yeyCtx, containerName, workDir)
+		return runContainer(ctx, yeyCtx, containerName, options)
 	case "exited":
 		return startContainer(ctx, containerName)
 	case "running":
-		return execContainer(ctx, containerName, workDir, yeyCtx.Cmd)
+		return execContainer(ctx, containerName, yeyCtx.Cmd, options)
 	default:
 		return fmt.Errorf("container %q in unexpected state %q", containerName, status)
 	}
@@ -105,7 +122,7 @@ func getContainerStatus(ctx context.Context, name string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func runContainer(ctx context.Context, yeyCtx yey.Context, containerName, workDir string) error {
+func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string, options runOptions) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -141,8 +158,8 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName, workDi
 		args = append(args, "--rm")
 	}
 
-	if workDir != "" {
-		args = append(args, "--workdir", workDir)
+	if options.workDir != "" {
+		args = append(args, "--workdir", options.workDir)
 	}
 
 	args = append(args, yeyCtx.Image)
@@ -155,10 +172,10 @@ func startContainer(ctx context.Context, containerName string) error {
 	return attachStdPipes(exec.CommandContext(ctx, "docker", "start", "-i", containerName)).Run()
 }
 
-func execContainer(ctx context.Context, containerName, workDir string, cmd []string) error {
+func execContainer(ctx context.Context, containerName string, cmd []string, options runOptions) error {
 	args := []string{"exec", "-ti"}
-	if workDir != "" {
-		args = append(args, "--workdir", workDir)
+	if options.workDir != "" {
+		args = append(args, "--workdir", options.workDir)
 	}
 	args = append(args, containerName)
 	args = append(args, cmd...)
