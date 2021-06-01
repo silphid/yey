@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/docker"
@@ -84,7 +86,39 @@ func run(ctx context.Context, name string, options Options) error {
 		}
 	}
 
-	return docker.Start(ctx, yeyContext, containerName)
+	workDir, err := getContainerWorkDir(yeyContext)
+	if err != nil {
+		return err
+	}
+
+	var runOptions []docker.RunOption
+	if workDir != "" {
+		runOptions = append(runOptions, docker.WithWorkDir(workDir))
+	}
+
+	return docker.Start(ctx, yeyContext, containerName, runOptions...)
+}
+
+func getContainerWorkDir(yeyContext yey.Context) (string, error) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range yeyContext.Mounts {
+		// Where is work dir relatively to mount dir?
+		subDir, err := filepath.Rel(key, workDir)
+		if err != nil {
+			return "", err
+		}
+
+		// Is work dir within mount dir?
+		if !strings.HasPrefix(subDir, fmt.Sprintf("..%c", filepath.Separator)) {
+			return filepath.Join(value, subDir), nil
+		}
+	}
+
+	return "", nil
 }
 
 func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild) (string, error) {
