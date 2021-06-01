@@ -90,9 +90,10 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 	}
 
 	if dir != "" {
-		contexts.Context = resolveContextPaths(dir, contexts.Context)
-		for name, context := range contexts.Named {
-			contexts.Named[name] = resolveContextPaths(dir, context)
+		var err error
+		contexts, err = resolveContextsPaths(dir, contexts)
+		if err != nil {
+			return Contexts{}, err
 		}
 	}
 
@@ -145,24 +146,69 @@ func LoadContexts() (Contexts, error) {
 	return contexts, nil
 }
 
-func resolveContextPaths(dir string, context Context) Context {
-	clone := context.Clone()
-	clone.Build.Dockerfile = resolvePath(dir, context.Build.Dockerfile)
-	clone.Build.Context = resolvePath(dir, clone.Build.Context)
-	for key, value := range clone.Mounts {
-		clone.Mounts[resolvePath(dir, key)] = value
+func resolveContextsPaths(dir string, contexts Contexts) (Contexts, error) {
+	var err error
+	contexts.Context, err = resolveContextPaths(dir, contexts.Context)
+	if err != nil {
+		return Contexts{}, err
 	}
-	return clone
+	for name, context := range contexts.Named {
+		contexts.Named[name], err = resolveContextPaths(dir, context)
+		if err != nil {
+			return Contexts{}, err
+		}
+	}
+	return contexts, nil
 }
 
-func resolvePath(dir, path string) string {
+func resolveContextPaths(dir string, context Context) (Context, error) {
+	clone := context.Clone()
+
+	// Resolve dockerfile path
+	var err error
+	clone.Build.Dockerfile, err = resolvePath(dir, context.Build.Dockerfile)
+	if err != nil {
+		return Context{}, err
+	}
+
+	// Resolve build context dir
+	clone.Build.Context, err = resolvePath(dir, clone.Build.Context)
+	if err != nil {
+		return Context{}, err
+	}
+
+	// Resolve mount dirs
+	clone.Mounts = make(map[string]string, len(context.Mounts))
+	for key, value := range context.Mounts {
+		key, err = resolvePath(dir, key)
+		if err != nil {
+			return Context{}, err
+		}
+		clone.Mounts[key] = value
+	}
+
+	return clone, nil
+}
+
+func resolvePath(dir, path string) (string, error) {
 	if path == "" {
-		return ""
+		return "", nil
+	}
+
+	// Resolve home dir
+	var err error
+	if path == "~" {
+		path, err = homedir.Dir()
+	} else {
+		path, err = homedir.Expand(path)
+	}
+	if err != nil {
+		return "", err
 	}
 
 	if filepath.IsAbs(path) {
-		return path
+		return path, nil
 	}
 
-	return filepath.Join(dir, path)
+	return filepath.Join(dir, path), nil
 }
