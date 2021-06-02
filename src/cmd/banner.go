@@ -27,8 +27,10 @@ func ShowBanner(contextName string) error {
 	}
 
 	// Show context name
-	if err := figurine.Write(os.Stdout, contextName, "Small.flf"); err != nil {
-		return err
+	if contextName != "base" {
+		if err := figurine.Write(os.Stdout, contextName, "Small.flf"); err != nil {
+			return err
+		}
 	}
 	fmt.Println()
 	return nil
