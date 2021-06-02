@@ -96,7 +96,9 @@ func run(ctx context.Context, name string, options Options) error {
 		runOptions = append(runOptions, docker.WithWorkDir(workDir))
 	}
 
-	cmd.ShowBanner(yeyContext.Name)
+	if err := cmd.ShowBanner(yeyContext.Name); err != nil {
+		return err
+	}
 
 	return docker.Start(ctx, yeyContext, containerName, runOptions...)
 }
