@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/silphid/yey/src/cmd"
 	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/docker"
 	"github.com/silphid/yey/src/internal/logging"
-
-	"github.com/silphid/yey/src/cmd"
 
 	"github.com/spf13/cobra"
 )
@@ -96,7 +95,7 @@ func run(ctx context.Context, name string, options Options) error {
 		runOptions = append(runOptions, docker.WithWorkDir(workDir))
 	}
 
-	if err := cmd.ShowBanner(yeyContext.Name); err != nil {
+	if err := ShowBanner(yeyContext.Name); err != nil {
 		return err
 	}
 
