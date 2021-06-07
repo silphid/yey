@@ -137,17 +137,7 @@ contexts:
 
 # Ideas/questions
 
-- yey!
-- Do we really need to names containers with tag?
-
-- yey start flags: --rm && --reset
-
 - yey user support??? can we run our containers as not root via context config or otherwise? SPIKE
-
-- Currently we have image support in contextFile, how about Dockerfile support? BOOM
-
-- yey rm [contextName/prompt] -> removes containers with prefix yey-pathHash-contextName-\*
-
-  - rm --all remove all contexts
-
-- yey tidy -> removes containers from all context names that are not references: yey-pathHash-contextNames-notusedContextHash
+- rm --all remove all contexts
+- support in context file for mapping ports
+- support in context file for passing arbitrary docker flags
