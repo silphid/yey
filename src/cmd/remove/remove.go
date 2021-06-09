@@ -21,11 +21,11 @@ func New() *cobra.Command {
 		Short:   "Removes context container",
 		Args:    cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := ""
+			nameAndVariant := ""
 			if len(args) == 1 {
-				name = args[0]
+				nameAndVariant = args[0]
 			}
-			return run(cmd.Context(), name, options)
+			return run(cmd.Context(), nameAndVariant, options)
 		},
 	}
 
@@ -38,23 +38,20 @@ type options struct {
 	force bool
 }
 
-func run(ctx context.Context, name string, options options) error {
+func run(ctx context.Context, nameAndVariant string, options options) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}
 
-	if name == "" {
-		var err error
-		name, err = cmd.PromptContext(contexts)
-		if err != nil {
-			return fmt.Errorf("failed to prompt for desired context: %w", err)
-		}
+	name, variant, err := cmd.GetOrPromptContextNameAndVariant(contexts, nameAndVariant)
+	if err != nil {
+		return fmt.Errorf("failed to prompt for context: %w", err)
 	}
 
-	context, err := contexts.GetContext(name)
+	context, err := contexts.GetContext(name, variant)
 	if err != nil {
-		return fmt.Errorf("failed to get context with name %q: %w", name, err)
+		return fmt.Errorf("failed to get context %q: %w", nameAndVariant, err)
 	}
 
 	container := yey.ContainerName(contexts.Path, context)

@@ -46,21 +46,18 @@ type Options struct {
 	Reset  bool
 }
 
-func run(ctx context.Context, name string, options Options) error {
+func run(ctx context.Context, nameAndVariant string, options Options) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}
 
-	if name == "" {
-		var err error
-		name, err = cmd.PromptContext(contexts)
-		if err != nil {
-			return fmt.Errorf("failed to prompt for desired context: %w", err)
-		}
+	name, variant, err := cmd.GetOrPromptContextNameAndVariant(contexts, nameAndVariant)
+	if err != nil {
+		return err
 	}
 
-	yeyContext, err := contexts.GetContext(name)
+	yeyContext, err := contexts.GetContext(name, variant)
 	if err != nil {
 		return fmt.Errorf("failed to get context with name %q: %w", name, err)
 	}

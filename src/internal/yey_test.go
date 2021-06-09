@@ -47,7 +47,7 @@ func TestSanitizePathName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := sanitizePathName(tc.Value)
+			actual := sanitize(tc.Value)
 			if actual != tc.Expected {
 				t.Fatalf("expected %s but got: %s", tc.Expected, actual)
 			}

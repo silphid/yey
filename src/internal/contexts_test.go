@@ -54,7 +54,7 @@ func TestGetContext(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 
-			actual, err := merged.GetContext(c.name)
+			actual, err := merged.GetContext(c.name, "")
 			actual.Name = c.name
 
 			if c.error != "" {

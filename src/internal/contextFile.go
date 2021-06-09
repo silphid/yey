@@ -85,8 +85,9 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 	}
 
 	contexts := Contexts{
-		Context: ctxFile.Context,
-		Named:   ctxFile.Named,
+		Context:  ctxFile.Context,
+		Named:    ctxFile.Named,
+		Variants: ctxFile.Variants,
 	}
 
 	if dir != "" {
