@@ -121,7 +121,7 @@ func (c Contexts) GetContext(name, variant string) (Context, error) {
 			return Context{}, fmt.Errorf("variant context %q not found", variant)
 		}
 		ctx = ctx.Merge(named)
-		ctx.Name = fmt.Sprintf("%s/%s", ctx.Name, variant)
+		ctx.Name = fmt.Sprintf("%s %s", ctx.Name, variant)
 	}
 
 	return ctx, nil
