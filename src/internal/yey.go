@@ -27,12 +27,16 @@ func ContainerName(path string, context Context) string {
 	return fmt.Sprintf(
 		"%s-%s-%s",
 		ContainerPathPrefix(path),
-		sanitize(context.Name),
+		sanitizeContextName(context.Name),
 		hash(context.String()),
 	)
 }
 
-func sanitize(value string) string {
+func sanitizeContextName(value string) string {
+	return special.ReplaceAllString(value, "-")
+}
+
+func sanitizePathName(value string) string {
 	value = spaces.ReplaceAllString(value, "_")
 	value = special.ReplaceAllString(value, "")
 	value = dashes.ReplaceAllString(value, "-")
@@ -50,7 +54,7 @@ func sanitize(value string) string {
 }
 
 func ContainerPathPrefix(path string) string {
-	pathBase := sanitize(filepath.Base(filepath.Dir(path)))
+	pathBase := sanitizePathName(filepath.Base(filepath.Dir(path)))
 	if pathBase == "" {
 		return fmt.Sprintf("yey-%s", hash(path))
 	}
