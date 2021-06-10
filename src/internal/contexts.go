@@ -5,124 +5,84 @@ import (
 	"sort"
 )
 
-const (
-	BaseContextName        = "base"
-	NoneVariantDisplayName = "none"
-	NoneVariantName        = ""
-)
-
 // Contexts represents a combinaison of base and named contexts
 type Contexts struct {
-	Path     string `yaml:"-"`
-	Context  `yaml:",inline"`
-	Named    map[string]Context
-	Variants map[string]Context
+	Path string
+	Context
+	Layers Layers
 }
 
 // Merge creates a deep-copy of this object and copies values from given source object on top of it
 func (c Contexts) Merge(source Contexts) Contexts {
-	merged := Contexts{
-		Context:  c.Context.Merge(source.Context),
-		Named:    make(map[string]Context),
-		Variants: make(map[string]Context),
+	return Contexts{
+		Context: c.Context.Merge(source.Context),
+		Layers:  c.Layers.Merge(source.Layers),
 	}
-	for key, value := range c.Named {
-		merged.Named[key] = value.Clone()
-	}
-	for key, value := range source.Named {
-		existing, ok := merged.Named[key]
-		if ok {
-			merged.Named[key] = existing.Merge(value)
-		} else {
-			merged.Named[key] = value
-		}
-	}
-	for key, value := range source.Variants {
-		existing, ok := merged.Variants[key]
-		if ok {
-			merged.Variants[key] = existing.Merge(value)
-		} else {
-			merged.Variants[key] = value
-		}
-	}
-	return merged
 }
 
 // GetNames returns the list of all context names user can choose from,
-// including the special "base" contexts.
-func (c Contexts) GetNames() []string {
-	// Extract unique names
-	namesMap := make(map[string]bool)
-	for name := range c.Named {
-		namesMap[name] = true
-	}
+func (c Contexts) GetNames() [][]string {
+	names := make([][]string, 0, len(c.Layers))
 
-	// Sort
-	sortedNames := make([]string, 0, len(namesMap))
-	for name := range namesMap {
-		sortedNames = append(sortedNames, name)
-	}
-	sort.Strings(sortedNames)
+	for _, layer := range c.Layers {
+		// Extract unique names
+		namesMap := make(map[string]bool)
+		for name := range layer.Contexts {
+			namesMap[name] = true
+		}
 
-	// Prepend special "base" context
-	names := make([]string, 0, len(sortedNames)+1)
-	names = append(names, BaseContextName)
-	names = append(names, sortedNames...)
+		// Sort
+		sortedNames := make([]string, 0, len(namesMap))
+		for name := range namesMap {
+			sortedNames = append(sortedNames, name)
+		}
+		sort.Strings(sortedNames)
+
+		names = append(names, sortedNames)
+	}
 
 	return names
 }
 
-// GetVariants returns the list of all context variant names and display names user can choose from
-func (c Contexts) GetVariants() ([]string, []string) {
-	// Extract unique names
-	namesMap := make(map[string]bool)
-	for name := range c.Variants {
-		namesMap[name] = true
-	}
+// GetNameCombinations returns the list of all possible name combinations for all layers
+func (c Contexts) GetNamesCombinations() [][]string {
+	return getCombinations(nil, c.GetNames())
+}
 
-	// Sort
-	sortedNames := make([]string, 0, len(namesMap))
-	for name := range namesMap {
-		sortedNames = append(sortedNames, name)
-	}
-	sort.Strings(sortedNames)
-
-	// Prepend special "none" variant
-	names := make([]string, 0, len(sortedNames)+1)
-	names = append(names, NoneVariantName)
-	names = append(names, sortedNames...)
-	displayNames := make([]string, 0, len(sortedNames)+1)
-	displayNames = append(displayNames, NoneVariantDisplayName)
-	displayNames = append(displayNames, sortedNames...)
-
-	return names, displayNames
+func getCombinations(base []string, descendants [][]string) [][]string {
+	// return append(base)
+	return nil
 }
 
 // GetContext returns context with given name (or base context, if name is "base") and
 // variant (or no variant, if variant name is "")
-func (c Contexts) GetContext(name, variant string) (Context, error) {
+func (c Contexts) GetContext(names []string) (Context, error) {
+	if len(names) != len(c.Layers) {
+		return Context{}, fmt.Errorf("number of context names (%d) does not match number of layers (%d)", len(names), len(c.Layers))
+	}
+
 	// Start with base context
 	ctx := c.Context
+	compositeName := ""
 
-	// Merge named context, if any
-	if name != BaseContextName {
-		named, ok := c.Named[name]
+	for i, layer := range c.Layers {
+		name := names[i]
+
+		// Merge layer context
+		layerContext, ok := layer.Contexts[name]
 		if !ok {
-			return Context{}, fmt.Errorf("named context %q not found", name)
+			return Context{}, fmt.Errorf("context %q not found in layer %q", name, layer.Name)
 		}
-		ctx = ctx.Merge(named)
-	}
-	ctx.Name = name
+		ctx = ctx.Merge(layerContext)
 
-	// Merge variant context, if any
-	if variant != "" {
-		named, ok := c.Variants[variant]
-		if !ok {
-			return Context{}, fmt.Errorf("variant context %q not found", variant)
+		// Accumulate composite name
+		if compositeName == "" {
+			compositeName = name
+		} else {
+			compositeName = fmt.Sprintf("%s %s", compositeName, name)
 		}
-		ctx = ctx.Merge(named)
-		ctx.Name = fmt.Sprintf("%s %s", ctx.Name, variant)
 	}
 
+	ctx.Name = compositeName
 	return ctx, nil
 }

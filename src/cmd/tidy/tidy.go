@@ -39,15 +39,12 @@ func run(ctx context.Context, options options) error {
 	}
 
 	validNames := make(map[string]struct{})
-	for _, name := range contexts.GetNames() {
-		variants, _ := contexts.GetVariants()
-		for _, variant := range variants {
-			ctx, err := contexts.GetContext(name, variant)
-			if err != nil {
-				return err
-			}
-			validNames[yey.ContainerName(contexts.Path, ctx)] = struct{}{}
+	for _, names := range contexts.GetNamesCombinations() {
+		ctx, err := contexts.GetContext(names)
+		if err != nil {
+			return err
 		}
+		validNames[yey.ContainerName(contexts.Path, ctx)] = struct{}{}
 	}
 
 	prefix := yey.ContainerPathPrefix(contexts.Path)
