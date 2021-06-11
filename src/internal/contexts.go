@@ -20,8 +20,8 @@ func (c Contexts) Merge(source Contexts) Contexts {
 	}
 }
 
-// GetNames returns the list of all context names user can choose from,
-func (c Contexts) GetNames() [][]string {
+// GetNamesInAllLayers returns the list of all context names user can choose from,
+func (c Contexts) GetNamesInAllLayers() [][]string {
 	names := make([][]string, 0, len(c.Layers))
 
 	for _, layer := range c.Layers {
@@ -42,16 +42,6 @@ func (c Contexts) GetNames() [][]string {
 	}
 
 	return names
-}
-
-// GetNameCombinations returns the list of all possible name combinations for all layers
-func (c Contexts) GetNamesCombinations() [][]string {
-	return getCombinations(nil, c.GetNames())
-}
-
-func getCombinations(base []string, descendants [][]string) [][]string {
-	// return append(base)
-	return nil
 }
 
 // GetContext returns context with given name (or base context, if name is "base") and

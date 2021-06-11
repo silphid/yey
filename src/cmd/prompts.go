@@ -9,7 +9,7 @@ import (
 
 // Parses given value into context name and variant and, as needed, prompt user for those values
 func GetOrPromptContextNames(contexts yey.Contexts, names []string) ([]string, error) {
-	availableNames := contexts.GetNames()
+	availableNames := contexts.GetNamesInAllLayers()
 
 	// Prompt unspecified names
 	for i := len(names); i < len(contexts.Layers); i++ {

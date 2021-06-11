@@ -10,9 +10,14 @@ import (
 func loadContexts(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Contexts {
 	return Contexts{
 		Context: loadContext(baseFile),
-		Named: map[string]Context{
-			ctx1Key: loadContext(ctx1File),
-			ctx2Key: loadContext(ctx2File),
+		Layers: Layers{
+			Layer{
+				Name: "layerName",
+				Contexts: map[string]Context{
+					ctx1Key: loadContext(ctx1File),
+					ctx2Key: loadContext(ctx2File),
+				},
+			},
 		},
 	}
 }
@@ -42,19 +47,15 @@ func TestGetContext(t *testing.T) {
 			expected: "base1_base1b_ctx3",
 		},
 		{
-			name:     "base",
-			expected: "base1_base1b",
-		},
-		{
 			name:  "unknown",
-			error: `context "unknown" not found`,
+			error: `context "unknown" not found in layer "layerName"`,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 
-			actual, err := merged.GetContext(c.name, "")
+			actual, err := merged.GetContext([]string{c.name})
 			actual.Name = c.name
 
 			if c.error != "" {
