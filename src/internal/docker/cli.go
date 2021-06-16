@@ -163,10 +163,6 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		"run",
 		"-it",
 		"--name", containerName,
-		"--env", "LS_COLORS",
-		"--env", "TERM",
-		"--env", "TERM_COLOR",
-		"--env", "TERM_PROGRAM",
 		"--env", "YEY_WORK_DIR=" + cwd,
 		"--env", "YEY_CONTEXT=" + yeyCtx.Name,
 	}
@@ -174,6 +170,11 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 	// Context env vars
 	for name, value := range yeyCtx.Env {
 		args = append(args, "--env", fmt.Sprintf("%s=%s", name, value))
+	}
+
+	// Env vars passed as-is from host
+	for _, name := range yeyCtx.HostEnv {
+		args = append(args, "--env", name)
 	}
 
 	// Mount binds
@@ -185,10 +186,19 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		)
 	}
 
+	// Remove container upon exit?
 	if yeyCtx.Remove != nil && *yeyCtx.Remove {
 		args = append(args, "--rm")
 	}
 
+	// Network mode
+	network := yeyCtx.Network
+	if network == "" {
+		network = "host"
+	}
+	args = append(args, "--network", network)
+
+	// Work directory
 	if options.workDir != "" {
 		args = append(args, "--workdir", options.workDir)
 	}
