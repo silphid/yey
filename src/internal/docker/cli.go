@@ -16,6 +16,8 @@ import (
 
 type runOptions struct {
 	workDir string
+	verbose bool
+	dryRun  bool
 }
 
 type RunOption func(*runOptions)
@@ -23,6 +25,18 @@ type RunOption func(*runOptions)
 func WithWorkDir(wd string) RunOption {
 	return func(ro *runOptions) {
 		ro.workDir = wd
+	}
+}
+
+func WithVerbose(value bool) RunOption {
+	return func(ro *runOptions) {
+		ro.verbose = value
+	}
+}
+
+func WithDryRun(value bool) RunOption {
+	return func(ro *runOptions) {
+		ro.dryRun = value
 	}
 }
 
@@ -42,7 +56,7 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string, opts .
 	case "":
 		return runContainer(ctx, yeyCtx, containerName, options)
 	case "exited":
-		return startContainer(ctx, containerName)
+		return startContainer(ctx, containerName, options)
 	case "running":
 		return execContainer(ctx, containerName, yeyCtx.Cmd, options)
 	default:
@@ -205,11 +219,21 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 	args = append(args, yeyCtx.Image)
 	args = append(args, yeyCtx.Cmd...)
 
+	if options.dryRun {
+		fmt.Printf("docker %s\n", strings.Join(args, " "))
+		return nil
+	}
+
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
-func startContainer(ctx context.Context, containerName string) error {
-	return attachStdPipes(exec.CommandContext(ctx, "docker", "start", "-i", containerName)).Run()
+func startContainer(ctx context.Context, containerName string, options runOptions) error {
+	args := []string{"start", "-i", containerName}
+	if options.dryRun {
+		fmt.Printf("docker %s\n", strings.Join(args, " "))
+		return nil
+	}
+	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
 func execContainer(ctx context.Context, containerName string, cmd []string, options runOptions) error {
@@ -219,6 +243,10 @@ func execContainer(ctx context.Context, containerName string, cmd []string, opti
 	}
 	args = append(args, containerName)
 	args = append(args, cmd...)
+	if options.dryRun {
+		fmt.Printf("docker %s\n", strings.Join(args, " "))
+		return nil
+	}
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
