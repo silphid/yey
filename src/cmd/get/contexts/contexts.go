@@ -27,6 +27,9 @@ func run() error {
 		return err
 	}
 
-	fmt.Println(strings.Join(contexts.GetNames(), "\n"))
+	names := contexts.GetNamesInAllLayers()
+	for i, layerNames := range names {
+		fmt.Printf("%s: %s\n", contexts.Layers[i].Name, strings.Join(layerNames, ", "))
+	}
 	return nil
 }

@@ -27,9 +27,13 @@ func ContainerName(path string, context Context) string {
 	return fmt.Sprintf(
 		"%s-%s-%s",
 		ContainerPathPrefix(path),
-		context.Name,
+		sanitizeContextName(context.Name),
 		hash(context.String()),
 	)
+}
+
+func sanitizeContextName(value string) string {
+	return special.ReplaceAllString(value, "-")
 }
 
 func sanitizePathName(value string) string {

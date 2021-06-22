@@ -13,34 +13,27 @@ func New() *cobra.Command {
 	return &cobra.Command{
 		Use:   "context",
 		Short: "Displays resolved values of given context",
-		Args:  cobra.RangeArgs(0, 1),
+		Args:  cobra.ArbitraryArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
-			name := ""
-			if len(args) == 1 {
-				name = args[0]
-			}
-			return run(name)
+			return run(args)
 		},
 	}
 }
 
-func run(name string) error {
+func run(names []string) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}
 
-	if name == "" {
-		var err error
-		name, err = cmd.PromptContext(contexts)
-		if err != nil {
-			return fmt.Errorf("failed to prompt for desired context: %w", err)
-		}
+	names, err = cmd.GetOrPromptContextNames(contexts, names)
+	if err != nil {
+		return err
 	}
 
-	context, err := contexts.GetContext(name)
+	context, err := contexts.GetContext(names)
 	if err != nil {
-		return fmt.Errorf("failed to get context with name %q: %w", name, err)
+		return fmt.Errorf("failed to get context: %w", err)
 	}
 
 	fmt.Println(context.String())

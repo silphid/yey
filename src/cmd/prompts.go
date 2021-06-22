@@ -7,28 +7,22 @@ import (
 	yey "github.com/silphid/yey/src/internal"
 )
 
-func PromptContext(contexts yey.Contexts) (string, error) {
-	// Get context names
-	names := contexts.GetNames()
-	if len(names) == 0 {
-		return "", fmt.Errorf("no context defined")
+// Parses given value into context name and variant and, as needed, prompt user for those values
+func GetOrPromptContextNames(contexts yey.Contexts, names []string) ([]string, error) {
+	availableNames := contexts.GetNamesInAllLayers()
+
+	// Prompt unspecified names
+	for i := len(names); i < len(contexts.Layers); i++ {
+		prompt := &survey.Select{
+			Message: fmt.Sprintf("Select %s:", contexts.Layers[i].Name),
+			Options: availableNames[i],
+		}
+		selectedIndex := 0
+		if err := survey.AskOne(prompt, &selectedIndex); err != nil {
+			return nil, err
+		}
+		names = append(names, availableNames[i][selectedIndex])
 	}
 
-	// Only one context defined, no need to prompt
-	if len(names) == 1 {
-		return names[0], nil
-	}
-
-	// Show selection prompt
-	prompt := &survey.Select{
-		Message: "Select context:",
-		Options: names,
-	}
-
-	selectedIndex := 0
-	if err := survey.AskOne(prompt, &selectedIndex); err != nil {
-		return "", err
-	}
-
-	return names[selectedIndex], nil
+	return names, nil
 }

@@ -22,16 +22,12 @@ func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Runs container using given context",
-		Args:  cobra.RangeArgs(0, 1),
+		Args:  cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := ""
-			if len(args) == 1 {
-				name = args[0]
-			}
 			if !cmd.Flag("rm").Changed {
 				options.Remove = nil
 			}
-			return run(cmd.Context(), name, options)
+			return run(cmd.Context(), args, options)
 		},
 	}
 
@@ -46,23 +42,20 @@ type Options struct {
 	Reset  bool
 }
 
-func run(ctx context.Context, name string, options Options) error {
+func run(ctx context.Context, names []string, options Options) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}
 
-	if name == "" {
-		var err error
-		name, err = cmd.PromptContext(contexts)
-		if err != nil {
-			return fmt.Errorf("failed to prompt for desired context: %w", err)
-		}
+	names, err = cmd.GetOrPromptContextNames(contexts, names)
+	if err != nil {
+		return err
 	}
 
-	yeyContext, err := contexts.GetContext(name)
+	yeyContext, err := contexts.GetContext(names)
 	if err != nil {
-		return fmt.Errorf("failed to get context with name %q: %w", name, err)
+		return fmt.Errorf("failed to get context: %w", err)
 	}
 	if options.Remove != nil {
 		yeyContext.Remove = options.Remove

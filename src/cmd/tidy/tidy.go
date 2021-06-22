@@ -39,13 +39,14 @@ func run(ctx context.Context, options options) error {
 	}
 
 	validNames := make(map[string]struct{})
-	for _, name := range contexts.GetNames() {
-		ctx, err := contexts.GetContext(name)
+	forEachPossibleNameCombination(contexts.GetNamesInAllLayers(), nil, func(names []string) error {
+		ctx, err := contexts.GetContext(names)
 		if err != nil {
 			return err
 		}
 		validNames[yey.ContainerName(contexts.Path, ctx)] = struct{}{}
-	}
+		return nil
+	})
 
 	prefix := yey.ContainerPathPrefix(contexts.Path)
 
@@ -66,4 +67,20 @@ func run(ctx context.Context, options options) error {
 	}
 
 	return docker.RemoveMany(ctx, unreferencedContainers, docker.WithForceRemove(options.force))
+}
+
+// forEachPossibleNameCombination calls given callback function with each possible combination of names from all layers
+func forEachPossibleNameCombination(namesInLayers [][]string, baseCombo []string, fn func([]string) error) error {
+	currentDepth := len(baseCombo)
+	for _, name := range namesInLayers[currentDepth] {
+		currentCombo := append(baseCombo, name)
+		if currentDepth == len(namesInLayers)-1 {
+			fn(currentCombo)
+		} else {
+			if err := forEachPossibleNameCombination(namesInLayers, currentCombo, fn); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

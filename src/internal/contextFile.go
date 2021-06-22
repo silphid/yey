@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -19,9 +19,11 @@ const (
 
 // ContextFile represents yey's current config persisted to disk
 type ContextFile struct {
-	Version  int
-	Parent   string
-	Contexts `yaml:",inline"`
+	Version int
+	Parent  string
+	Path    string `yaml:"-"`
+	Context `yaml:",inline"`
+	Layers  Layers `yaml:"layers"`
 }
 
 // readContextFileFromWorkingDirectory scans the current directory and searches for a .yeyrc.yaml file and returns
@@ -86,7 +88,7 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 
 	contexts := Contexts{
 		Context: ctxFile.Context,
-		Named:   ctxFile.Named,
+		Layers:  ctxFile.Layers,
 	}
 
 	if dir != "" {
@@ -152,10 +154,12 @@ func resolveContextsPaths(dir string, contexts Contexts) (Contexts, error) {
 	if err != nil {
 		return Contexts{}, err
 	}
-	for name, context := range contexts.Named {
-		contexts.Named[name], err = resolveContextPaths(dir, context)
-		if err != nil {
-			return Contexts{}, err
+	for _, layer := range contexts.Layers {
+		for name, context := range layer.Contexts {
+			layer.Contexts[name], err = resolveContextPaths(dir, context)
+			if err != nil {
+				return Contexts{}, err
+			}
 		}
 	}
 	return contexts, nil
