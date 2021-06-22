@@ -17,7 +17,6 @@ type Context struct {
 	Image      string
 	Build      DockerBuild
 	Env        map[string]string
-	HostEnv    []string `yaml:"hostenv,omitempty"`
 	Mounts     map[string]string
 	Cmd        []string
 	EntryPoint []string
@@ -43,8 +42,6 @@ func (c Context) Clone() Context {
 	for key, value := range c.Build.Args {
 		clone.Build.Args[key] = value
 	}
-	clone.HostEnv = make([]string, len(c.HostEnv))
-	copy(clone.HostEnv, c.HostEnv)
 	return clone
 }
 
@@ -76,7 +73,6 @@ func (c Context) Merge(source Context) Context {
 	if source.Network != "" {
 		merged.Network = source.Network
 	}
-	merged.HostEnv = append(merged.HostEnv, source.HostEnv...)
 	return merged
 }
 

@@ -169,12 +169,11 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 
 	// Context env vars
 	for name, value := range yeyCtx.Env {
-		args = append(args, "--env", fmt.Sprintf("%s=%s", name, value))
-	}
-
-	// Env vars passed as-is from host
-	for _, name := range yeyCtx.HostEnv {
-		args = append(args, "--env", name)
+		arg := name
+		if value != "" {
+			arg = fmt.Sprintf("%s=%s", name, value)
+		}
+		args = append(args, "--env", arg)
 	}
 
 	// Mount binds
