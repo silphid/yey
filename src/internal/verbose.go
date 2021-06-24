@@ -5,7 +5,9 @@ import (
 	"os"
 )
 
-var ()
+var (
+	IsVerbose bool
+)
 
 func Log(format string, a ...interface{}) {
 	if IsVerbose {
