@@ -33,13 +33,17 @@ func New() *cobra.Command {
 
 	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
 	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
+	cmd.Flags().BoolVarP(&options.Verbose, "verbose", "v", false, "output detailed execution information to stderr")
+	cmd.Flags().BoolVar(&options.DryRun, "dry-run", false, "output docker command to stdout instead of executing it")
 
 	return cmd
 }
 
 type Options struct {
-	Remove *bool
-	Reset  bool
+	Remove  *bool
+	Reset   bool
+	Verbose bool
+	DryRun  bool
 }
 
 func run(ctx context.Context, names []string, options Options) error {
@@ -70,26 +74,53 @@ func run(ctx context.Context, names []string, options Options) error {
 		logging.Log("using image: %s", yeyContext.Image)
 	}
 
-	containerName := yey.ContainerName(contexts.Path, yeyContext)
+	if options.Verbose {
+		fmt.Fprintf(os.Stderr, "context:\n--\n%v--\n", yeyContext)
+	}
 
+	// Container name
+	containerName := yey.ContainerName(contexts.Path, yeyContext)
+	if options.Verbose {
+		fmt.Fprintf(os.Stderr, "container: %s\n", containerName)
+	}
+
+	// Reset
 	if options.Reset {
+		if options.Verbose {
+			fmt.Fprintf(os.Stderr, "removing container first")
+		}
 		if err := docker.Remove(ctx, containerName); err != nil {
 			return fmt.Errorf("failed to remove container %q: %w", containerName, err)
 		}
 	}
 
+	var runOptions []docker.RunOption
+
+	// Working directory
 	workDir, err := getContainerWorkDir(yeyContext)
 	if err != nil {
 		return err
 	}
-
-	var runOptions []docker.RunOption
 	if workDir != "" {
 		runOptions = append(runOptions, docker.WithWorkDir(workDir))
 	}
+	if options.Verbose {
+		fmt.Fprintf(os.Stderr, "working directory: %s", workDir)
+	}
 
-	if err := ShowBanner(yeyContext.Name); err != nil {
-		return err
+	// Dry-run/verbose
+	runOptions = append(runOptions,
+		docker.WithDryRun(options.DryRun),
+		docker.WithVerbose(options.Verbose))
+
+	// Banner
+	if options.Verbose {
+		fmt.Fprintln(os.Stderr)
+	}
+	if !options.DryRun {
+		if err := ShowBanner(yeyContext.Name); err != nil {
+			return err
+		}
 	}
 
 	return docker.Start(ctx, yeyContext, containerName, runOptions...)
