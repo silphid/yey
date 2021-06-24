@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/silphid/yey/src/internal/logging"
+	yey "github.com/silphid/yey/src/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -9,13 +9,13 @@ import (
 func NewRoot() *cobra.Command {
 	c := &cobra.Command{
 		Use:          "yey",
-		Short:        "A DevOps & CI/CD & Kubernetes-oriented general purpose Docker container with CLI launcher",
-		Long:         `A DevOps & CI/CD & Kubernetes-oriented general purpose Docker container with CLI launcher`,
+		Short:        "An interactive, human-friendly docker launcher for dev and devops",
+		Long:         "An interactive, human-friendly docker launcher for dev and devops",
 		SilenceUsage: true,
 	}
 
-	// var options internal.Options
-	c.PersistentFlags().BoolVarP(&logging.Verbose, "verbose", "v", false, "display verbose messages")
+	c.PersistentFlags().BoolVarP(&yey.IsVerbose, "verbose", "v", false, "output verbose messages to stderr")
+	c.PersistentFlags().BoolVar(&yey.IsDryRun, "dry-run", false, "output docker command to stdout instead of executing it")
 
 	return c
 }

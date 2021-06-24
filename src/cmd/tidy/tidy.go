@@ -12,7 +12,7 @@ import (
 
 // New creates a cobra command
 func New() *cobra.Command {
-	var options options
+	var options docker.RemoveOptions
 
 	cmd := &cobra.Command{
 		Use:   "tidy",
@@ -23,16 +23,12 @@ func New() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&options.force, "force", "f", false, "removes containers forcibly")
+	cmd.Flags().BoolVarP(&options.Force, "force", "f", false, "removes containers forcibly")
 
 	return cmd
 }
 
-type options struct {
-	force bool
-}
-
-func run(ctx context.Context, options options) error {
+func run(ctx context.Context, options docker.RemoveOptions) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
@@ -66,7 +62,7 @@ func run(ctx context.Context, options options) error {
 		unreferencedContainers = append(unreferencedContainers, container)
 	}
 
-	return docker.RemoveMany(ctx, unreferencedContainers, docker.WithForceRemove(options.force))
+	return docker.RemoveMany(ctx, unreferencedContainers, options)
 }
 
 // forEachPossibleNameCombination calls given callback function with each possible combination of names from all layers
