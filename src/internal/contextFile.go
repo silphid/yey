@@ -107,6 +107,8 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 		contexts = parent.Merge(contexts)
 	}
 
+	contexts = resolveEnvironmentVariables(contexts)
+
 	return contexts, nil
 }
 
@@ -215,4 +217,24 @@ func resolvePath(dir, path string) (string, error) {
 	}
 
 	return filepath.Join(dir, path), nil
+}
+
+func resolveEnvironmentVariables(contexts Contexts) Contexts {
+	clone := contexts
+	clone.Context = clone.Context.Clone()
+	clone.Layers = clone.Layers.Clone()
+
+	for key, value := range clone.Env {
+		clone.Context.Env[key] = os.ExpandEnv(value)
+	}
+
+	for _, layer := range clone.Layers {
+		for _, ctx := range layer.Contexts {
+			for key, value := range ctx.Env {
+				ctx.Env[key] = os.ExpandEnv(value)
+			}
+		}
+	}
+
+	return clone
 }
