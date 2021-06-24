@@ -195,8 +195,17 @@ func execContainer(ctx context.Context, yeyCtx yey.Context, containerName string
 		args = append(args, "--workdir", options.WorkDir)
 	}
 	args = append(args, containerName)
-	args = append(args, yeyCtx.EntryPoint)
-	args = append(args, yeyCtx.Cmd...)
+
+	// Entrypoint/command
+	if yeyCtx.EntryPoint == "" && len(yeyCtx.Cmd) == 0 {
+		// Default to sh because docker exec requires some command
+		args = append(args, "sh")
+	} else {
+		if yeyCtx.EntryPoint != "" {
+			args = append(args, yeyCtx.EntryPoint)
+		}
+		args = append(args, yeyCtx.Cmd...)
+	}
 
 	return run(ctx, args...)
 }
