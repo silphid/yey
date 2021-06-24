@@ -20,6 +20,7 @@ type Context struct {
 	Mounts     map[string]string
 	Cmd        []string
 	EntryPoint []string
+	Network    string
 }
 
 // Clone returns a deep-copy of this context
@@ -68,6 +69,9 @@ func (c Context) Merge(source Context) Context {
 	}
 	for key, value := range source.Build.Args {
 		merged.Build.Args[key] = value
+	}
+	if source.Network != "" {
+		merged.Network = source.Network
 	}
 	return merged
 }
