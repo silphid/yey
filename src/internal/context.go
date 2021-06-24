@@ -18,8 +18,8 @@ type Context struct {
 	Build      DockerBuild
 	Env        map[string]string
 	Mounts     map[string]string
+	EntryPoint string `yaml:"entrypoint,omitempty"`
 	Cmd        []string
-	EntryPoint []string
 	Network    string
 }
 

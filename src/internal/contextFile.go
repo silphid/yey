@@ -113,6 +113,8 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 // readAndParseContextFileFromURI reads and parses the context file from an URI, which can either
 // be an URL or local path
 func readAndParseContextFileFromURI(path string) (Contexts, error) {
+	Log("loading rc file: %s", path)
+
 	var bytes []byte
 	var err error
 	var dir string
@@ -139,6 +141,7 @@ func LoadContexts() (Contexts, error) {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
+	Log("loading rc file: %s", path)
 	contexts, err := parseContextFile(filepath.Dir(path), bytes)
 	if err != nil {
 		return Contexts{}, err

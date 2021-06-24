@@ -33,7 +33,7 @@ func Run(ctx context.Context, yeyCtx yey.Context, containerName string, options 
 		return startContainer(ctx, containerName, options)
 	case "running":
 		yey.Log("executing new shell in running container %q", containerName)
-		return execContainer(ctx, containerName, yeyCtx.Cmd, options)
+		return execContainer(ctx, yeyCtx, containerName, options)
 	default:
 		return fmt.Errorf("container %q in unexpected state %q", containerName, status)
 	}
@@ -178,6 +178,11 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		args = append(args, "--workdir", options.WorkDir)
 	}
 
+	// EntryPoint
+	if yeyCtx.EntryPoint != "" {
+		args = append(args, "--entrypoint", yeyCtx.EntryPoint)
+	}
+
 	args = append(args, yeyCtx.Image)
 	args = append(args, yeyCtx.Cmd...)
 
@@ -188,23 +193,37 @@ func startContainer(ctx context.Context, containerName string, options RunOption
 	return run(ctx, "start", "-i", containerName)
 }
 
-func execContainer(ctx context.Context, containerName string, cmd []string, options RunOptions) error {
+func execContainer(ctx context.Context, yeyCtx yey.Context, containerName string, options RunOptions) error {
 	args := []string{"exec", "-ti"}
 	if options.WorkDir != "" {
 		args = append(args, "--workdir", options.WorkDir)
 	}
 	args = append(args, containerName)
-	args = append(args, cmd...)
+	args = append(args, yeyCtx.EntryPoint)
+	args = append(args, yeyCtx.Cmd...)
 
 	return run(ctx, args...)
 }
 
 func run(ctx context.Context, args ...string) error {
-	if yey.IsDryRun {
-		fmt.Printf("docker %s\n", strings.Join(args, " "))
-		return nil
+	if yey.IsDryRun || yey.IsVerbose {
+		cmd := fmt.Sprintf("docker %s", strings.Join(escapeArgs(args), " "))
+		if yey.IsDryRun {
+			fmt.Println(cmd)
+			return nil
+		}
+		yey.Log(cmd)
 	}
+
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+}
+
+func escapeArgs(args []string) []string {
+	escaped := make([]string, 0, len(args))
+	for _, a := range args {
+		escaped = append(escaped, strings.ReplaceAll(a, " ", `\ `))
+	}
+	return escaped
 }
 
 func attachStdPipes(cmd *exec.Cmd) *exec.Cmd {
