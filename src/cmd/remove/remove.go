@@ -13,7 +13,7 @@ import (
 
 // New creates a cobra command
 func New() *cobra.Command {
-	var options options
+	var options docker.RemoveOptions
 
 	cmd := &cobra.Command{
 		Use:     "remove",
@@ -25,16 +25,12 @@ func New() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&options.force, "force", "f", false, "force removes container")
+	cmd.Flags().BoolVarP(&options.Force, "force", "f", false, "force removes container")
 
 	return cmd
 }
 
-type options struct {
-	force bool
-}
-
-func run(ctx context.Context, names []string, options options) error {
+func run(ctx context.Context, names []string, options docker.RemoveOptions) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
@@ -52,5 +48,5 @@ func run(ctx context.Context, names []string, options options) error {
 
 	container := yey.ContainerName(contexts.Path, context)
 
-	return docker.Remove(ctx, container, docker.WithForceRemove(options.force))
+	return docker.Remove(ctx, container, options)
 }

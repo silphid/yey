@@ -10,7 +10,6 @@ import (
 	"github.com/silphid/yey/src/cmd"
 	yey "github.com/silphid/yey/src/internal"
 	"github.com/silphid/yey/src/internal/docker"
-	"github.com/silphid/yey/src/internal/logging"
 
 	"github.com/spf13/cobra"
 )
@@ -33,17 +32,13 @@ func New() *cobra.Command {
 
 	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
 	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
-	cmd.Flags().BoolVarP(&options.Verbose, "verbose", "v", false, "output detailed execution information to stderr")
-	cmd.Flags().BoolVar(&options.DryRun, "dry-run", false, "output docker command to stdout instead of executing it")
 
 	return cmd
 }
 
 type Options struct {
-	Remove  *bool
-	Reset   bool
-	Verbose bool
-	DryRun  bool
+	Remove *bool
+	Reset  bool
 }
 
 func run(ctx context.Context, names []string, options Options) error {
@@ -67,63 +62,46 @@ func run(ctx context.Context, names []string, options Options) error {
 
 	if yeyContext.Image == "" {
 		var err error
-		yeyContext.Image, err = readAndBuildDockerfile(ctx, yeyContext.Build)
+		yeyContext.Image, err = readAndBuildDockerfile(ctx, yeyContext.Build, options)
 		if err != nil {
 			return fmt.Errorf("failed to build yey context image: %w", err)
 		}
-		logging.Log("using image: %s", yeyContext.Image)
+		yey.Log("using image: %s", yeyContext.Image)
 	}
 
-	if options.Verbose {
-		fmt.Fprintf(os.Stderr, "context:\n--\n%v--\n", yeyContext)
-	}
+	yey.Log("context:\n--\n%v--", yeyContext)
 
 	// Container name
 	containerName := yey.ContainerName(contexts.Path, yeyContext)
-	if options.Verbose {
-		fmt.Fprintf(os.Stderr, "container: %s\n", containerName)
-	}
+	yey.Log("container: %s", containerName)
 
 	// Reset
 	if options.Reset {
-		if options.Verbose {
-			fmt.Fprintf(os.Stderr, "removing container first")
-		}
-		if err := docker.Remove(ctx, containerName); err != nil {
+		yey.Log("removing container first")
+		if err := docker.Remove(ctx, containerName, docker.RemoveOptions{}); err != nil {
 			return fmt.Errorf("failed to remove container %q: %w", containerName, err)
 		}
 	}
 
-	var runOptions []docker.RunOption
-
 	// Working directory
+	var runOptions docker.RunOptions
 	workDir, err := getContainerWorkDir(yeyContext)
 	if err != nil {
 		return err
 	}
 	if workDir != "" {
-		runOptions = append(runOptions, docker.WithWorkDir(workDir))
+		runOptions.WorkDir = workDir
 	}
-	if options.Verbose {
-		fmt.Fprintf(os.Stderr, "working directory: %s", workDir)
-	}
-
-	// Dry-run/verbose
-	runOptions = append(runOptions,
-		docker.WithDryRun(options.DryRun),
-		docker.WithVerbose(options.Verbose))
+	yey.Log("working directory: %s", workDir)
 
 	// Banner
-	if options.Verbose {
-		fmt.Fprintln(os.Stderr)
-	}
-	if !options.DryRun {
+	if !yey.IsDryRun {
 		if err := ShowBanner(yeyContext.Name); err != nil {
 			return err
 		}
 	}
 
-	return docker.Start(ctx, yeyContext, containerName, runOptions...)
+	return docker.Run(ctx, yeyContext, containerName, runOptions)
 }
 
 func getContainerWorkDir(yeyContext yey.Context) (string, error) {
@@ -148,7 +126,7 @@ func getContainerWorkDir(yeyContext yey.Context) (string, error) {
 	return "", nil
 }
 
-func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild) (string, error) {
+func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild, options Options) (string, error) {
 	dockerBytes, err := os.ReadFile(build.Dockerfile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read dockerfile: %w", err)

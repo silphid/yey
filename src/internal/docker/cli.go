@@ -11,41 +11,13 @@ import (
 	"strings"
 
 	yey "github.com/silphid/yey/src/internal"
-	"github.com/silphid/yey/src/internal/logging"
 )
 
-type runOptions struct {
-	workDir string
-	verbose bool
-	dryRun  bool
+type RunOptions struct {
+	WorkDir string
 }
 
-type RunOption func(*runOptions)
-
-func WithWorkDir(wd string) RunOption {
-	return func(ro *runOptions) {
-		ro.workDir = wd
-	}
-}
-
-func WithVerbose(value bool) RunOption {
-	return func(ro *runOptions) {
-		ro.verbose = value
-	}
-}
-
-func WithDryRun(value bool) RunOption {
-	return func(ro *runOptions) {
-		ro.dryRun = value
-	}
-}
-
-func Start(ctx context.Context, yeyCtx yey.Context, containerName string, opts ...RunOption) error {
-	var options runOptions
-	for _, opt := range opts {
-		opt(&options)
-	}
-
+func Run(ctx context.Context, yeyCtx yey.Context, containerName string, options RunOptions) error {
 	// Determine whether we need to run or exec container
 	status, err := getContainerStatus(ctx, containerName)
 	if err != nil {
@@ -54,29 +26,24 @@ func Start(ctx context.Context, yeyCtx yey.Context, containerName string, opts .
 
 	switch status {
 	case "":
+		yey.Log("running new container %q", containerName)
 		return runContainer(ctx, yeyCtx, containerName, options)
 	case "exited":
+		yey.Log("restarting stopped container %q", containerName)
 		return startContainer(ctx, containerName, options)
 	case "running":
+		yey.Log("executing new shell in running container %q", containerName)
 		return execContainer(ctx, containerName, yeyCtx.Cmd, options)
 	default:
 		return fmt.Errorf("container %q in unexpected state %q", containerName, status)
 	}
 }
 
-type removeOption struct {
-	force bool
+type RemoveOptions struct {
+	Force bool
 }
 
-type RemoveOption func(ro *removeOption)
-
-func WithForceRemove(value bool) RemoveOption {
-	return func(ro *removeOption) {
-		ro.force = value
-	}
-}
-
-func Remove(ctx context.Context, containerName string, options ...RemoveOption) error {
+func Remove(ctx context.Context, containerName string, options RemoveOptions) error {
 	status, err := getContainerStatus(ctx, containerName)
 	if err != nil {
 		return err
@@ -86,26 +53,21 @@ func Remove(ctx context.Context, containerName string, options ...RemoveOption) 
 		return nil
 	}
 
-	return RemoveMany(ctx, []string{containerName}, options...)
+	return RemoveMany(ctx, []string{containerName}, options)
 }
 
-func RemoveMany(ctx context.Context, containers []string, options ...RemoveOption) error {
+func RemoveMany(ctx context.Context, containers []string, options RemoveOptions) error {
 	if len(containers) == 0 {
 		return nil
 	}
 
-	var opts removeOption
-	for _, opt := range options {
-		opt(&opts)
-	}
-
 	args := []string{"rm", "-v"}
-	if opts.force {
+	if options.Force {
 		args = append(args, "-f")
 	}
 	args = append(args, containers...)
 
-	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+	return run(ctx, args...)
 }
 
 func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs map[string]string, context string) error {
@@ -114,7 +76,7 @@ func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs ma
 		return fmt.Errorf("failed to look up image tag %q: %w", imageTag, err)
 	}
 	if exists {
-		logging.Log("found prebuilt image: %q: skipping build step", imageTag)
+		yey.Log("found prebuilt image: %q: skipping build step", imageTag)
 		return nil
 	}
 
@@ -127,7 +89,7 @@ func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs ma
 	}
 	args = append(args, context)
 
-	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+	return run(ctx, args...)
 }
 
 var newlines = regexp.MustCompile(`\r?\n`)
@@ -167,7 +129,7 @@ func getContainerStatus(ctx context.Context, name string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string, options runOptions) error {
+func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string, options RunOptions) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -212,38 +174,33 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 	args = append(args, "--network", network)
 
 	// Work directory
-	if options.workDir != "" {
-		args = append(args, "--workdir", options.workDir)
+	if options.WorkDir != "" {
+		args = append(args, "--workdir", options.WorkDir)
 	}
 
 	args = append(args, yeyCtx.Image)
 	args = append(args, yeyCtx.Cmd...)
 
-	if options.dryRun {
-		fmt.Printf("docker %s\n", strings.Join(args, " "))
-		return nil
-	}
-
-	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+	return run(ctx, args...)
 }
 
-func startContainer(ctx context.Context, containerName string, options runOptions) error {
-	args := []string{"start", "-i", containerName}
-	if options.dryRun {
-		fmt.Printf("docker %s\n", strings.Join(args, " "))
-		return nil
-	}
-	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
+func startContainer(ctx context.Context, containerName string, options RunOptions) error {
+	return run(ctx, "start", "-i", containerName)
 }
 
-func execContainer(ctx context.Context, containerName string, cmd []string, options runOptions) error {
+func execContainer(ctx context.Context, containerName string, cmd []string, options RunOptions) error {
 	args := []string{"exec", "-ti"}
-	if options.workDir != "" {
-		args = append(args, "--workdir", options.workDir)
+	if options.WorkDir != "" {
+		args = append(args, "--workdir", options.WorkDir)
 	}
 	args = append(args, containerName)
 	args = append(args, cmd...)
-	if options.dryRun {
+
+	return run(ctx, args...)
+}
+
+func run(ctx context.Context, args ...string) error {
+	if yey.IsDryRun {
 		fmt.Printf("docker %s\n", strings.Join(args, " "))
 		return nil
 	}
