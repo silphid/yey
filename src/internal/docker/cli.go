@@ -212,7 +212,7 @@ func execContainer(ctx context.Context, yeyCtx yey.Context, containerName string
 
 func run(ctx context.Context, args ...string) error {
 	if yey.IsDryRun || yey.IsVerbose {
-		cmd := fmt.Sprintf("docker %s", strings.Join(escapeArgs(args), " "))
+		cmd := fmt.Sprintf("docker %s", strings.Join(quoteArgsWithSpecialChars(args), " "))
 		if yey.IsDryRun {
 			fmt.Println(cmd)
 			return nil
@@ -223,10 +223,15 @@ func run(ctx context.Context, args ...string) error {
 	return attachStdPipes(exec.CommandContext(ctx, "docker", args...)).Run()
 }
 
-func escapeArgs(args []string) []string {
+var specialCharsRegex = regexp.MustCompile(`\s`)
+
+func quoteArgsWithSpecialChars(args []string) []string {
 	escaped := make([]string, 0, len(args))
 	for _, a := range args {
-		escaped = append(escaped, strings.ReplaceAll(a, " ", `\ `))
+		if specialCharsRegex.MatchString(a) {
+			a = `"` + a + `"`
+		}
+		escaped = append(escaped, a)
 	}
 	return escaped
 }
