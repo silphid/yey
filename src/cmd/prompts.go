@@ -13,6 +13,11 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string) ([]string, e
 
 	// Prompt unspecified names
 	for i := len(names); i < len(contexts.Layers); i++ {
+		// Don't prompt when single name in layer
+		if len(availableNames[i]) == 1 {
+			names = append(names, availableNames[i][0])
+			continue
+		}
 		prompt := &survey.Select{
 			Message: fmt.Sprintf("Select %s:", contexts.Layers[i].Name),
 			Options: availableNames[i],
