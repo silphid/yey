@@ -47,7 +47,17 @@ func run(ctx context.Context, names []string, options Options) error {
 		return err
 	}
 
-	names, err = cmd.GetOrPromptContextNames(contexts, names)
+	lastNames, err := cmd.LoadLastNames()
+	if err != nil {
+		return err
+	}
+
+	names, err = cmd.GetOrPromptContextNames(contexts, names, lastNames)
+	if err != nil {
+		return err
+	}
+
+	err = cmd.SaveLastNames(names)
 	if err != nil {
 		return err
 	}
