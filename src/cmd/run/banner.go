@@ -19,7 +19,7 @@ func ShowBanner(contextName string) error {
 	// Show "yey!" banner
 	rand.Seed(time.Now().UTC().UnixNano())
 	l := &rainbow.Light{
-		Writer: os.Stdout,
+		Writer: os.Stderr,
 		Seed:   rand.Int63n(256),
 	}
 	if _, err := l.Write(banner); err != nil {
@@ -28,7 +28,7 @@ func ShowBanner(contextName string) error {
 
 	// Show context name
 	if contextName != "base" {
-		if err := figurine.Write(os.Stdout, contextName, "Small.flf"); err != nil {
+		if err := figurine.Write(os.Stderr, contextName, "Small.flf"); err != nil {
 			return err
 		}
 	}
