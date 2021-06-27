@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.12
 	github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8
+	github.com/TwinProduction/go-color v1.0.0 // indirect
 	github.com/arsham/figurine v1.0.1
 	github.com/arsham/rainbow v1.1.1
 	github.com/go-test/deep v1.0.7

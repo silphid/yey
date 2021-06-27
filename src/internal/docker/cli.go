@@ -70,6 +70,10 @@ func RemoveMany(ctx context.Context, containers []string, options RemoveOptions)
 	return run(ctx, args...)
 }
 
+func Pull(ctx context.Context, image string) error {
+	return run(ctx, "pull", image)
+}
+
 func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs map[string]string, context string) error {
 	exists, err := imageExists(ctx, imageTag)
 	if err != nil {

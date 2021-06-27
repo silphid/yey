@@ -44,6 +44,31 @@ func (c Contexts) GetNamesInAllLayers() [][]string {
 	return names
 }
 
+// GetAllImages returns the list of image names referenced in all contexts
+func (c Contexts) GetAllImages() []string {
+	namesMap := make(map[string]struct{})
+
+	if c.Context.Image != "" {
+		namesMap[c.Context.Image] = struct{}{}
+	}
+
+	for _, layer := range c.Layers {
+		for _, ctx := range layer.Contexts {
+			if ctx.Image != "" {
+				namesMap[ctx.Image] = struct{}{}
+			}
+		}
+	}
+
+	// Sort
+	sortedNames := make([]string, 0, len(namesMap))
+	for name := range namesMap {
+		sortedNames = append(sortedNames, name)
+	}
+	sort.Strings(sortedNames)
+	return sortedNames
+}
+
 // GetContext returns context with given name (or base context, if name is "base") and
 // variant (or no variant, if variant name is "")
 func (c Contexts) GetContext(names []string) (Context, error) {
