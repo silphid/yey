@@ -1,2 +1,2 @@
 #!/bin/bash
-go build -ldflags "-X main.version=dev-$(date +%F-%T)" -o /usr/local/bin/yey ./src
+go build -ldflags "-X main.version=dev-$(date +%F-%T)" -o /usr/local/bin/_yey ./src
