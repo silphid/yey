@@ -1,0 +1,31 @@
+project_name: yey
+builds:
+  - dir: src
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+archives:
+  - format: tar.gz
+    wrap_in_directory: false
+    replacements:
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+brews:
+  - tap:
+      owner: silphid
+      name: yey-tap
+    homepage: "https://github.com/silphid/yey"
+    description: "An interactive, human-friendly docker launcher for dev and devops"
+    license: "MIT"
