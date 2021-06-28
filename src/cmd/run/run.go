@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/silphid/yey/src/cmd"
@@ -32,6 +33,7 @@ func New() *cobra.Command {
 
 	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
 	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
+	cmd.Flags().BoolVar(&options.Pull, "pull", false, "force pulling image from registry before running")
 
 	return cmd
 }
@@ -39,6 +41,7 @@ func New() *cobra.Command {
 type Options struct {
 	Remove *bool
 	Reset  bool
+	Pull   bool
 }
 
 func run(ctx context.Context, names []string, options Options) error {
@@ -101,7 +104,17 @@ func run(ctx context.Context, names []string, options Options) error {
 		}
 	}
 
+	//////
+
 	return docker.Run(ctx, yeyContext, containerName, runOptions)
+}
+
+var asdf = regexp.MustCompile(`.*`)
+
+// shouldPull returns whether image should be pulled before running it.
+// It returns true when image tag is `latest` or when it is not specified.
+func shouldPull(imageName string) bool {
+
 }
 
 func getContainerWorkDir(yeyContext yey.Context) (string, error) {
