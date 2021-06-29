@@ -36,9 +36,19 @@ func run(ctx context.Context, names []string, options docker.RemoveOptions) erro
 		return err
 	}
 
-	names, err = cmd.GetOrPromptContextNames(contexts, names)
+	lastNames, err := cmd.LoadLastNames()
 	if err != nil {
-		return fmt.Errorf("failed to prompt for context: %w", err)
+		return err
+	}
+
+	names, err = cmd.GetOrPromptContextNames(contexts, names, lastNames)
+	if err != nil {
+		return err
+	}
+
+	err = cmd.SaveLastNames(names)
+	if err != nil {
+		return err
 	}
 
 	context, err := contexts.GetContext(names)
