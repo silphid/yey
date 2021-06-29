@@ -23,7 +23,7 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []
 			continue
 		}
 		prompt := &survey.Select{
-			Message: fmt.Sprintf("Select %s:", contexts.Layers[i].Name),
+			Message: fmt.Sprintf("Select %s", contexts.Layers[i].Name),
 			Options: availableNames[i],
 		}
 		if i < len(lastNames) {
@@ -37,4 +37,19 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []
 	}
 
 	return names, nil
+}
+
+// Prompts user to multi-select among given images
+func PromptImageNames(allImages []string) ([]string, error) {
+
+	prompt := &survey.MultiSelect{
+		Message: "Select images to pull",
+		Options: allImages,
+	}
+	selectedImages := []string{}
+	if err := survey.AskOne(prompt, &selectedImages); err != nil {
+		return nil, err
+	}
+
+	return selectedImages, nil
 }
