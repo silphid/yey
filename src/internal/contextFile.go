@@ -15,6 +15,7 @@ import (
 
 const (
 	currentVersion = 0
+	yeyRCFileName  = ".yeyrc.yaml"
 )
 
 // ContextFile represents yey's current config persisted to disk
@@ -36,12 +37,16 @@ func readContextFileFromWorkingDirectory() ([]byte, string, error) {
 	}
 
 	for {
-		candidate := filepath.Join(wd, ".yeyrc.yaml")
+		candidate := filepath.Join(wd, yeyRCFileName)
 		data, err := os.ReadFile(candidate)
 
 		if errors.Is(err, os.ErrNotExist) {
 			if wd == "/" {
-				return nil, "", fmt.Errorf("no .yeyrc.yaml in directory hierarchy")
+				data, candidate, err = readContextFileFromHomeDirectory()
+				if err != nil {
+					return nil, "", fmt.Errorf("could not find %q in current directory hierarchy or home dir: %w", yeyRCFileName, err)
+				}
+				return data, candidate, nil
 			}
 			wd = filepath.Join(wd, "..")
 			continue
@@ -53,6 +58,22 @@ func readContextFileFromWorkingDirectory() ([]byte, string, error) {
 
 		return data, candidate, nil
 	}
+}
+
+// readContextFileFromHomeDirectory looks in home directory for a .yeyrc.yaml file and returns
+// the bytes in the file, the absolute path to contextFile and an error if encountered.
+// If none is found it climbs the directory hierarchy.
+func readContextFileFromHomeDirectory() ([]byte, string, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return nil, "", fmt.Errorf("could not determine home dir: %w", err)
+	}
+	file := filepath.Join(dir, yeyRCFileName)
+	data, err := os.ReadFile(file)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, "", fmt.Errorf("no %q in home dir", yeyRCFileName)
+	}
+	return data, file, nil
 }
 
 // readContextFileFromFilePath reads the contextfile from the fs
@@ -115,7 +136,7 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 // readAndParseContextFileFromURI reads and parses the context file from an URI, which can either
 // be an URL or local path
 func readAndParseContextFileFromURI(path string) (Contexts, error) {
-	Log("loading rc file: %s", path)
+	Log("loading context file: %s", path)
 
 	var bytes []byte
 	var err error
@@ -143,7 +164,7 @@ func LoadContexts() (Contexts, error) {
 		return Contexts{}, fmt.Errorf("failed to read context file: %w", err)
 	}
 
-	Log("loading rc file: %s", path)
+	Log("loading context file: %s", path)
 	contexts, err := parseContextFile(filepath.Dir(path), bytes)
 	if err != nil {
 		return Contexts{}, err
