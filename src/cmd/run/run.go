@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/silphid/yey/src/cmd"
@@ -32,6 +33,7 @@ func New() *cobra.Command {
 
 	cmd.Flags().BoolVar(options.Remove, "rm", false, "remove container upon exit")
 	cmd.Flags().BoolVar(&options.Reset, "reset", false, "remove previous container before starting a fresh one")
+	cmd.Flags().BoolVar(&options.Pull, "pull", false, "force pulling image from registry before running")
 
 	return cmd
 }
@@ -39,6 +41,7 @@ func New() *cobra.Command {
 type Options struct {
 	Remove *bool
 	Reset  bool
+	Pull   bool
 }
 
 func run(ctx context.Context, names []string, options Options) error {
@@ -104,6 +107,12 @@ func run(ctx context.Context, names []string, options Options) error {
 	}
 	yey.Log("working directory: %s", workDir)
 
+	// Pull image first?
+	if options.Pull || shouldPull(yeyContext.Image) {
+		yey.Log("Pulling %s", yeyContext.Image)
+		docker.Pull(ctx, yeyContext.Image)
+	}
+
 	// Banner
 	if !yey.IsDryRun {
 		if err := ShowBanner(yeyContext.Name); err != nil {
@@ -112,6 +121,23 @@ func run(ctx context.Context, names []string, options Options) error {
 	}
 
 	return docker.Run(ctx, yeyContext, containerName, runOptions)
+}
+
+var tagRegex = regexp.MustCompile(`.*/.*:(.*)`)
+
+func getTagFromImageName(imageName string) string {
+	groups := tagRegex.FindStringSubmatch(imageName)
+	if groups == nil {
+		return ""
+	}
+	return groups[1]
+}
+
+// shouldPull returns whether image should be pulled before running it.
+// It returns true when image tag is `latest` or when it is not specified.
+func shouldPull(imageName string) bool {
+	tag := getTagFromImageName(imageName)
+	return tag == "" || tag == "latest"
 }
 
 func getContainerWorkDir(yeyContext yey.Context) (string, error) {
