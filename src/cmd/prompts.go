@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/TwinProduction/go-color"
 	yey "github.com/silphid/yey/src/internal"
 )
 
@@ -40,38 +42,54 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []
 }
 
 // Parses given value into context name and variant and, as needed, prompt user for those values
-func GetOrPromptMultipleContextNames(contexts yey.Contexts, names []string, predicate func(name string) bool) ([][]string, error) {
+func GetOrPromptMultipleContextNames(contexts yey.Contexts, providedNames []string, getMatchingContainers func(names [][]string) []string) ([][]string, error) {
 	availableNames := contexts.GetNamesInAllLayers()
 
 	outputNames := make([][]string, 0, len(contexts.Layers))
 	for layer := 0; layer < len(contexts.Layers); layer++ {
 		// Context name for this layer already specified by user?
-		if layer < len(names) {
+		if layer < len(providedNames) {
 			// Just take name specified by user
-			outputNames = append(outputNames, []string{names[layer]})
+			outputNames = append(outputNames, []string{providedNames[layer]})
 		} else {
 			// Filter context names through predicate
-			filteredNames := make([]string, 0, len(availableNames[layer]))
+			selectableNames := make([]string, 0, len(availableNames[layer]))
+			selectableTitles := make([]string, 0, len(availableNames[layer]))
 			for _, name := range availableNames[layer] {
-				if predicate(name) {
-					filteredNames = append(filteredNames, name)
+				matchingContainers := len(getMatchingContainers(append(outputNames, []string{name})))
+				if matchingContainers > 0 {
+					selectableNames = append(selectableNames, name)
+					selectableTitles = append(selectableTitles, fmt.Sprintf("%s %s",
+						color.Ize(color.Gray, name),
+						color.Ize(color.Blue, fmt.Sprintf("(%d)", matchingContainers))))
 				}
 			}
 
+			layerName := contexts.Layers[layer].Name
+
 			// Don't prompt when single option
-			if len(filteredNames) == 1 {
-				outputNames = append(outputNames, filteredNames)
+			if len(selectableNames) == 1 {
+				fmt.Fprintf(os.Stderr, "Auto-selecting only %s: %s\n",
+					color.Ize(color.Green, layerName),
+					color.Ize(color.Blue, selectableNames[0]))
+				outputNames = append(outputNames, selectableNames)
 				continue
 			}
 
 			// Prompt to multiselect context names for unspecified layer
 			prompt := &survey.MultiSelect{
-				Message: fmt.Sprintf("Select %s(s)", contexts.Layers[layer].Name),
-				Options: filteredNames,
+				Message: fmt.Sprintf("Select %s(s)", layerName),
+				Options: selectableTitles,
 			}
-			var selectedNames []string
-			if err := survey.AskOne(prompt, &selectedNames); err != nil {
+			var selectedIndices []int
+			if err := survey.AskOne(prompt, &selectedIndices); err != nil {
 				return nil, err
+			}
+
+			// Look-up names for selected indices
+			selectedNames := make([]string, 0, len(selectedIndices))
+			for _, selectedIndex := range selectedIndices {
+				selectedNames = append(selectedNames, selectableNames[selectedIndex])
 			}
 			outputNames = append(outputNames, selectedNames)
 		}

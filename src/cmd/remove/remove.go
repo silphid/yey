@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
-	"strings"
 
 	"github.com/TwinProduction/go-color"
 	"github.com/spf13/cobra"
@@ -51,50 +49,34 @@ func run(ctx context.Context, names []string, options docker.RemoveOptions) erro
 		return nil
 	}
 
-	// Predicate to determine whether context name in given layer has a corresponding container
-	predicate := func(name string) bool {
+	// Func to determine which containers match given context names
+	getMatchingContainers := func(names [][]string) []string {
+		pattern := yey.ContainerNamePattern(names)
+		matchingContainers := make([]string, 0, len(containers))
 		for _, container := range containers {
-			if strings.Contains(container, "-"+name+"-") {
-				return true
+			if pattern.MatchString(container) {
+				matchingContainers = append(matchingContainers, container)
 			}
 		}
-		return false
+		return matchingContainers
 	}
 
 	// Prompt
-	selectedNames, err := cmd.GetOrPromptMultipleContextNames(contexts, names, predicate)
+	selectedNames, err := cmd.GetOrPromptMultipleContextNames(contexts, names, getMatchingContainers)
 	if err != nil {
 		return fmt.Errorf("failed to prompt for context: %w", err)
 	}
 
-	// Find regex patterns for all selected names
-	patterns := getPatternsRecursively(ctx, contexts, selectedNames, []string{}, 0, options)
-
-	// Remove all containers matching patterns
+	// Remove all containers matching pattern
+	pattern := yey.ContainerNamePattern(selectedNames)
 	for _, container := range containers {
-		for _, pattern := range patterns {
-			if pattern.MatchString(container) {
-				if err := remove(ctx, container, options); err != nil {
-					return err
-				}
+		if pattern.MatchString(container) {
+			if err := remove(ctx, container, options); err != nil {
+				return err
 			}
 		}
 	}
 	return nil
-}
-
-func getPatternsRecursively(ctx context.Context, contexts yey.Contexts, selectedNames [][]string, names []string, layer int, options docker.RemoveOptions) []*regexp.Regexp {
-	patterns := []*regexp.Regexp{}
-	for _, name := range selectedNames[layer] {
-		currentNames := append(names, name)
-		if layer == len(selectedNames)-1 {
-			patterns = append(patterns, yey.ContainerNamePattern(currentNames))
-		} else {
-			// Recurse
-			patterns = append(patterns, getPatternsRecursively(ctx, contexts, selectedNames, currentNames, layer+1, options)...)
-		}
-	}
-	return patterns
 }
 
 func remove(ctx context.Context, container string, options docker.RemoveOptions) error {

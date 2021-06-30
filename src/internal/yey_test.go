@@ -1,6 +1,10 @@
 package yey
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestSanitizePathName(t *testing.T) {
 	testCases := []struct {
@@ -86,4 +90,23 @@ func TestContainerPathPrefix(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestContainerNamePattern(t *testing.T) {
+	names := [][]string{
+		{"gcp", "aws"},
+		{"devops"},
+		{"stg", "prod"},
+	}
+	pattern := ContainerNamePattern(names)
+
+	assert.True(t, pattern.MatchString("yey-path-123456-gcp-devops-stg-whatever-123456"))
+	assert.True(t, pattern.MatchString("yey-path-123456-gcp-devops-prod-whatever-123456"))
+	assert.True(t, pattern.MatchString("yey-path-123456-aws-devops-stg-whatever-123456"))
+	assert.True(t, pattern.MatchString("yey-path-123456-aws-devops-prod-whatever-123456"))
+
+	assert.False(t, pattern.MatchString("yey-path-123456-wrong-devops-stg-whatever-123456"))
+	assert.False(t, pattern.MatchString("yey-path-123456-gcp-wrong-stg-whatever-123456"))
+	assert.False(t, pattern.MatchString("yey-path-123456-gcp-devops-wrong-whatever-123456"))
+	assert.False(t, pattern.MatchString("yey-path-123456-wrong-wrong-wrong-whatever-123456"))
 }
