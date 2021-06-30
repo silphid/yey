@@ -26,8 +26,8 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []
 			Message: fmt.Sprintf("Select %s", contexts.Layers[layer].Name),
 			Options: availableNames[layer],
 		}
-		if i < len(lastNames) {
-			prompt.Default = lastNames[i]
+		if layer < len(lastNames) {
+			prompt.Default = lastNames[layer]
 		}
 		var selectedName string
 		if err := survey.AskOne(prompt, &selectedName); err != nil {
@@ -40,7 +40,7 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []
 }
 
 // Parses given value into context name and variant and, as needed, prompt user for those values
-func GetOrPromptMultipleContextNames(contexts yey.Contexts, names []string, predicate func(name string, layer int) bool) ([][]string, error) {
+func GetOrPromptMultipleContextNames(contexts yey.Contexts, names []string, predicate func(name string) bool) ([][]string, error) {
 	availableNames := contexts.GetNamesInAllLayers()
 
 	outputNames := make([][]string, 0, len(contexts.Layers))
@@ -53,7 +53,7 @@ func GetOrPromptMultipleContextNames(contexts yey.Contexts, names []string, pred
 			// Filter context names through predicate
 			filteredNames := make([]string, 0, len(availableNames[layer]))
 			for _, name := range availableNames[layer] {
-				if predicate(name, layer) {
+				if predicate(name) {
 					filteredNames = append(filteredNames, name)
 				}
 			}

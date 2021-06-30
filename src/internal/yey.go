@@ -23,6 +23,8 @@ func hash(value string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+// ContainerName returns the container name to use for given yey rc path
+// and context
 func ContainerName(path string, context Context) string {
 	return fmt.Sprintf(
 		"%s-%s-%s",
@@ -30,6 +32,16 @@ func ContainerName(path string, context Context) string {
 		sanitizeContextName(context.Name),
 		hash(context.String()),
 	)
+}
+
+// ContainerNamePattern returns a regexp that can be used to match all
+// container names corresponding to the given context names
+func ContainerNamePattern(contextNames []string) *regexp.Regexp {
+	pattern := "yey-.*-"
+	for _, name := range contextNames {
+		pattern += name + "-"
+	}
+	return regexp.MustCompile(pattern)
 }
 
 func sanitizeContextName(value string) string {
