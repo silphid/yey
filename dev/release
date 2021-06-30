@@ -1,2 +1,2 @@
 #!/bin/bash
-goreleaser release
+goreleaser release --rm-dist
