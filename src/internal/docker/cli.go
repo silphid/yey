@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	yey "github.com/silphid/yey/src/internal"
@@ -100,12 +101,21 @@ var newlines = regexp.MustCompile(`\r?\n`)
 
 func ListContainers(ctx context.Context) ([]string, error) {
 	cmd := exec.Command("docker", "ps", "--all", "--filter", "name=yey-*", "--format", "{{.Names}}")
-	output, err := cmd.Output()
+
+	// Parse output
+	outputBuf, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
-	output = bytes.TrimSpace(output)
-	return newlines.Split(string(output), -1), nil
+	output := string(bytes.TrimSpace(outputBuf))
+	if output == "" {
+		return []string{}, nil
+	}
+	containers := newlines.Split(string(output), -1)
+
+	// Sort
+	sort.Strings(containers)
+	return containers, nil
 }
 
 func imageExists(ctx context.Context, tag string) (bool, error) {
