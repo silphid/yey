@@ -8,7 +8,11 @@ import (
 )
 
 // Parses given value into context name and variant and, as needed, prompt user for those values
-func GetOrPromptContextNames(contexts yey.Contexts, names []string) ([]string, error) {
+func GetOrPromptContextNames(contexts yey.Contexts, names []string, lastNames []string) ([]string, error) {
+	if len(names) == 1 && names[0] == "-" {
+		return lastNames, nil
+	}
+
 	availableNames := contexts.GetNamesInAllLayers()
 
 	// Prompt unspecified names
@@ -21,6 +25,9 @@ func GetOrPromptContextNames(contexts yey.Contexts, names []string) ([]string, e
 		prompt := &survey.Select{
 			Message: fmt.Sprintf("Select %s", contexts.Layers[layer].Name),
 			Options: availableNames[layer],
+		}
+		if i < len(lastNames) {
+			prompt.Default = lastNames[i]
 		}
 		var selectedName string
 		if err := survey.AskOne(prompt, &selectedName); err != nil {
