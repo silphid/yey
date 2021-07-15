@@ -2,6 +2,7 @@ package yey
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -137,6 +138,33 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 	}
 
 	return ctx, names, nil
+}
+
+// GetAllImages returns the list of image names referenced in context recursively
+func (c Context) GetAllImages() []string {
+	namesMap := make(map[string]struct{})
+
+	if c.Image != "" {
+		namesMap[c.Image] = struct{}{}
+	}
+
+	// Recurse into all child layers/contexts
+	for _, layer := range c.Layers {
+		for _, ctx := range layer.Contexts {
+			childImages := ctx.GetAllImages()
+			for _, childImage := range childImages {
+				namesMap[childImage] = struct{}{}
+			}
+		}
+	}
+
+	// Sort
+	sortedNames := make([]string, 0, len(namesMap))
+	for name := range namesMap {
+		sortedNames = append(sortedNames, name)
+	}
+	sort.Strings(sortedNames)
+	return sortedNames
 }
 
 // String returns a user-friendly yaml representation of this context
