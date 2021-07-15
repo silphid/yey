@@ -59,6 +59,10 @@ func (layers *Layers) UnmarshalYAML(n *yaml.Node) error {
 			Name:     layerName,
 			Contexts: contexts,
 		}
+		for name, context := range layer.Contexts {
+			context.Name = name
+			layer.Contexts[name] = context
+		}
 		*layers = append(*layers, layer)
 	}
 	return nil

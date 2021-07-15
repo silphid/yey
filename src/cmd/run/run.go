@@ -55,7 +55,7 @@ func run(ctx context.Context, names []string, options Options) error {
 		return err
 	}
 
-	names, err = cmd.GetOrPromptContextNames(contexts, names, lastNames)
+	names, err = cmd.GetOrPromptContextNames(contexts.Context, names, lastNames)
 	if err != nil {
 		return err
 	}
@@ -109,6 +109,8 @@ func run(ctx context.Context, names []string, options Options) error {
 
 	// Pull image first?
 	if options.Pull || shouldPull(yeyContext.Image) {
+		// TODO: Check running containers with image
+		// and prompt for killing it
 		yey.Log("Pulling %s", yeyContext.Image)
 		docker.Pull(ctx, yeyContext.Image)
 	}

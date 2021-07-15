@@ -24,7 +24,6 @@ type ContextFile struct {
 	Parent  string
 	Path    string `yaml:"-"`
 	Context `yaml:",inline"`
-	Layers  Layers `yaml:"layers"`
 }
 
 // readContextFileFromWorkingDirectory scans the current directory and searches for a .yeyrc.yaml file and returns
@@ -109,7 +108,6 @@ func parseContextFile(dir string, data []byte) (Contexts, error) {
 
 	contexts := Contexts{
 		Context: ctxFile.Context,
-		Layers:  ctxFile.Layers,
 	}
 
 	if dir != "" {

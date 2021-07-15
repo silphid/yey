@@ -31,7 +31,7 @@ func run(names []string) error {
 		return err
 	}
 
-	names, err = cmd.GetOrPromptContextNames(contexts, names, lastNames)
+	names, err = cmd.GetOrPromptContextNames(contexts.Context, names, lastNames)
 	if err != nil {
 		return err
 	}
