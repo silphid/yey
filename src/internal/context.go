@@ -97,6 +97,7 @@ func (c Context) GetContext(names []string) (Context, error) {
 	if len(remainingNames) > 0 {
 		return Context{}, fmt.Errorf("extraneous context names: %s", strings.Join(remainingNames, " "))
 	}
+	ctx.Name = strings.Join(names, " ")
 	return ctx, nil
 }
 
@@ -119,11 +120,6 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 			return Context{}, nil, fmt.Errorf("context %q not found in layer %q", name, layer.Name)
 		}
 		ctx = ctx.Merge(layerContext)
-		if len(ctx.Name) > 0 {
-			ctx.Name = fmt.Sprintf("%s %s", ctx.Name, name)
-		} else {
-			ctx.Name = name
-		}
 
 		// Get child contexts recursively
 		if len(layerContext.Layers) > 0 {

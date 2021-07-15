@@ -55,10 +55,12 @@ func run(ctx context.Context, names []string, options Options) error {
 		return err
 	}
 
-	names, err = cmd.GetOrPromptContextNames(contexts.Context, names, lastNames)
+	names, err = cmd.GetOrPromptContexts(contexts.Context, names, lastNames)
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("selected contexts: %v\n", names)
 
 	err = cmd.SaveLastNames(names)
 	if err != nil {
