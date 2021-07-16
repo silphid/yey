@@ -95,7 +95,7 @@ func PromptImages(allImages []string) ([]string, error) {
 
 // Prompts user to multi-select among given containers and optionally also
 // other containers (which are displayed in yellow)
-func PromptContainers(containers []string, otherContainers []string) ([]string, error) {
+func PromptContainers(containers []string, otherContainers []string, message string) ([]string, error) {
 	// Combine containers and otherContainers (in yellow)
 	options := containers
 	for _, container := range otherContainers {
@@ -103,7 +103,7 @@ func PromptContainers(containers []string, otherContainers []string) ([]string, 
 	}
 
 	prompt := &survey.MultiSelect{
-		Message: "Select containers",
+		Message: message,
 		Options: options,
 	}
 	selectedIndices := []int{}

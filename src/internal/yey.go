@@ -7,7 +7,6 @@ import (
 	"io"
 	"path/filepath"
 	"regexp"
-	"strings"
 )
 
 var (
@@ -33,22 +32,6 @@ func ContainerName(path string, context Context) string {
 		sanitizeContextName(context.Name),
 		hash(context.String()),
 	)
-}
-
-// ContainerNamePattern returns a regexp that can be used to match all
-// container names corresponding to the given context names
-func ContainerNamePattern(contextNames [][]string) *regexp.Regexp {
-	pattern := "yey-.*-"
-	for _, names := range contextNames {
-		// Escape regexp meta-characters
-		quotedNames := []string{}
-		for _, name := range names {
-			quotedNames = append(quotedNames, regexp.QuoteMeta(name))
-		}
-
-		pattern += fmt.Sprintf("(%s)-", strings.Join(quotedNames, "|"))
-	}
-	return regexp.MustCompile(pattern)
 }
 
 func sanitizeContextName(value string) string {

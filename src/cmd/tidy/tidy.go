@@ -46,7 +46,7 @@ func run(ctx context.Context, options docker.RemoveOptions) error {
 
 	prefix := yey.ContainerPathPrefix(contexts.Path)
 
-	names, err := docker.ListContainers(ctx)
+	names, err := docker.ListContainers(ctx, true)
 	if err != nil {
 		return err
 	}

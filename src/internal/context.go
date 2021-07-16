@@ -128,7 +128,6 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 				return Context{}, nil, err
 			}
 			ctx = ctx.Merge(childContext)
-			ctx.Name = fmt.Sprintf("%s %s", ctx.Name, childContext.Name)
 			names = remainingNames
 		}
 	}

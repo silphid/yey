@@ -60,8 +60,6 @@ func run(ctx context.Context, names []string, options Options) error {
 		return err
 	}
 
-	fmt.Printf("selected contexts: %v\n", names)
-
 	err = cmd.SaveLastNames(names)
 	if err != nil {
 		return err

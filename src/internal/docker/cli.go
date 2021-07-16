@@ -99,13 +99,19 @@ func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs ma
 
 var newlines = regexp.MustCompile(`\r?\n`)
 
-func ListContainers(ctx context.Context) ([]string, error) {
-	cmd := exec.Command("docker", "ps", "--all", "--filter", "name=yey-*", "--format", "{{.Names}}")
+func ListContainers(ctx context.Context, all bool) ([]string, error) {
+	// Compute args
+	args := []string{"ps", "--filter", "name=yey-*", "--format", "{{.Names}}"}
+	if all {
+		args = append(args, "--all")
+	}
+
+	cmd := exec.Command("docker", args...)
 
 	// Parse output
 	outputBuf, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to execute command: docker %s", strings.Join(args, " "))
 	}
 	output := string(bytes.TrimSpace(outputBuf))
 	if output == "" {

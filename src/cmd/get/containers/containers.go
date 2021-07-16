@@ -25,7 +25,7 @@ func New() *cobra.Command {
 }
 
 func run(ctx context.Context) error {
-	names, err := docker.ListContainers(ctx)
+	names, err := docker.ListContainers(ctx, true)
 	if err != nil {
 		return err
 	}
