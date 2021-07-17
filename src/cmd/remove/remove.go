@@ -48,6 +48,7 @@ func run(ctx context.Context, names []string, options RemoveOptions) error {
 	if err != nil {
 		return fmt.Errorf("failed to list containers to prompt for removal: %w", err)
 	}
+	totalCount := len(containers)
 
 	// Compute all valid contexts
 	combos := contexts.GetCombos()
@@ -84,6 +85,10 @@ func run(ctx context.Context, names []string, options RemoveOptions) error {
 
 	// Abort if no containers to remove
 	if len(validContainers) == 0 && len(otherContainers) == 0 {
+		if totalCount > 0 {
+			fmt.Fprintln(os.Stderr, color.Ize(color.Green, fmt.Sprintf("no project-specific yey containers found, but %d other(s) were found that you could include with --all flag", totalCount)))
+			return nil
+		}
 		fmt.Fprintln(os.Stderr, color.Ize(color.Green, "no yey containers found to remove"))
 		return nil
 	}
