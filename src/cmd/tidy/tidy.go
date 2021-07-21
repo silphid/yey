@@ -35,18 +35,18 @@ func run(ctx context.Context, options docker.RemoveOptions) error {
 	}
 
 	validNames := make(map[string]struct{})
-	forEachPossibleNameCombination(contexts.GetNamesInAllLayers(), nil, func(names []string) error {
-		ctx, err := contexts.GetContext(names)
+	combos := contexts.GetCombos()
+	for _, combo := range combos {
+		ctx, err := contexts.GetContext(combo)
 		if err != nil {
 			return err
 		}
 		validNames[yey.ContainerName(contexts.Path, ctx)] = struct{}{}
-		return nil
-	})
+	}
 
 	prefix := yey.ContainerPathPrefix(contexts.Path)
 
-	names, err := docker.ListContainers(ctx)
+	names, err := docker.ListContainers(ctx, true)
 	if err != nil {
 		return err
 	}
@@ -63,20 +63,4 @@ func run(ctx context.Context, options docker.RemoveOptions) error {
 	}
 
 	return docker.RemoveMany(ctx, unreferencedContainers, options)
-}
-
-// forEachPossibleNameCombination calls given callback function with each possible combination of names from all layers
-func forEachPossibleNameCombination(namesInLayers [][]string, baseCombo []string, fn func([]string) error) error {
-	currentDepth := len(baseCombo)
-	for _, name := range namesInLayers[currentDepth] {
-		currentCombo := append(baseCombo, name)
-		if currentDepth == len(namesInLayers)-1 {
-			fn(currentCombo)
-		} else {
-			if err := forEachPossibleNameCombination(namesInLayers, currentCombo, fn); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }

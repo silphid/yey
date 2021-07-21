@@ -44,7 +44,7 @@ func run(ctx context.Context, names []string, options pullOptions) error {
 	// Determine which images to pull
 	images := contexts.GetAllImages()
 	if !options.all {
-		images, err = cmd.PromptImageNames(images)
+		images, err = cmd.PromptImages(images)
 		if err != nil {
 			return fmt.Errorf("failed to prompt images to pull: %w", err)
 		}

@@ -1,7 +1,4 @@
 {
-  // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
-  // Pointez pour afficher la description des attributs existants.
-  // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -10,7 +7,25 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/src",
-      "args": ["run", "prod", "go"],
+      "args": ["run"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug yey run dev go",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/src",
+      "args": ["run", "dev", "go"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug yey get contexts",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/src",
+      "args": ["get", "contexts"],
       "cwd": "${workspaceFolder}"
     }
   ]
