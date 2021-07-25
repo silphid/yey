@@ -116,6 +116,7 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 
 		// Merge layer context
 		layerContext, ok := layer.Contexts[name]
+		layerContext.Layers = nil
 		if !ok {
 			return Context{}, nil, fmt.Errorf("context %q not found in layer %q", name, layer.Name)
 		}
@@ -132,6 +133,7 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 		}
 	}
 
+	ctx.Layers = nil
 	return ctx, names, nil
 }
 

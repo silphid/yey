@@ -10,7 +10,7 @@ type Layers []Layer
 
 // Clone returns a deep-copy of this layer
 func (l Layers) Clone() Layers {
-	clone := Layers{}
+	var clone Layers
 	for _, layer := range l {
 		clone = append(clone, layer.Clone())
 	}

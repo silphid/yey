@@ -8,18 +8,19 @@ import (
 )
 
 func loadContexts(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Contexts {
-	return Contexts{
+	ctx := Contexts{
 		Context: loadContext(baseFile),
-		Layers: Layers{
-			Layer{
-				Name: "layerName",
-				Contexts: map[string]Context{
-					ctx1Key: loadContext(ctx1File),
-					ctx2Key: loadContext(ctx2File),
-				},
+	}
+	ctx.Layers = Layers{
+		Layer{
+			Name: "layer",
+			Contexts: map[string]Context{
+				ctx1Key: loadContext(ctx1File),
+				ctx2Key: loadContext(ctx2File),
 			},
 		},
 	}
+	return ctx
 }
 
 func TestGetContext(t *testing.T) {
@@ -48,7 +49,7 @@ func TestGetContext(t *testing.T) {
 		},
 		{
 			name:  "unknown",
-			error: `context "unknown" not found in layer "layerName"`,
+			error: `context "unknown" not found in layer "layer"`,
 		},
 	}
 
