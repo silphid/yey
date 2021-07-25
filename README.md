@@ -1,43 +1,60 @@
-# Commands
+# Yey!
 
-- `yey use [context or "base" or "none"]`
-  - validates context
-  - saves context in `~/.yey/state.yaml`
-  - omitting context prompts for context from list of available contexts + "base" + "none"
-- `yey run [context or "base" or "none" or "?"]`
-  - reads `~/.yey/state.yaml`
-  - omitting context uses default context (if default not set or "?", prompts for context)
-  - if no version set yet, does a `yey upgrade`
-  - merges env vars and volume mounts from `shared.yaml` and `user.yaml`
-  - keep only volume mounts that exist locally
-  - if tag is `latest` or `""` does a forced pull
-  - starts docker container
-- `yey stop [context or "base" or "none" or "all"]`
-  - omitting context prompts for context
-- `yey get`
-  - `contexts`
-    - lists available contexts
-  - `containers`
-    - lists active containers
-  - `context`
-    - displays current context
-- `yey remove/rm [context or "" or "?" or "all"]`
-  - omitting context uses default, "?" prompts for context
-  - stops running containers
-  - deletes yey docker images and containers
-- `yey install [ARGS...]`
-  - prompts user for all install properties not passed as arguments
-    - Do you want to configure a git repo from which to load remote shared configs?
-      - Base URL to raw config git repo config files
-      - Git token
-        - Maybe we can automate that process/flow!
-          Something like: https://github.com/chrisdickinson/get-github-token
-          There must be a way to pop a browser and have github (or other) prompt
-          user to authorize yey and automatically create a token, like
-          for google cloud?
-  - stores answers in `~/.yey/state.yaml`
-  - if remote shared configs configured, copy `user.yaml` to `~/.yey/`
-    (only if doesn't already exist)
+Yey is a user-friendly CLI fostering collaboration within and across dev/devops teams by allowing them to easily share and launch various docker container configurations.
+
+# Motivation
+
+Ever since my career converged onto DevOps many years ago, I have always been confronted with the complexity of dealing with multiple environments and Kubernetes clusters, which often required specific versions of tools (ie: a 1.14 Kubernetes cluster cannot be managed by `kubectl` 1.16). I often had to reinstall a different version of `kubectl` depending on the cluster I was connecting to. Also, onboarding new team members required them to follow detailed instructions to properly install and configure their environment, not to mention configuration drifts where some of them ended up with missing or incorrect versions of tools required by our DevOps bash scripts.
+
+The solution seemed obvious: Package up all tools in docker containers and have everyone use them for interacting with clusters and other tasks involving our scripts. While docker containers are mostly leveraged for deploying applications to the cloud, they can also be extremely useful for standardizing and packaging up different sets of tools and environments for development and DevOps daily work.
+
+However, using containers in that way comes with its own set of challenges:
+
+- The `docker` CLI is not particularly friendly for launching multiple containers with sophisticated configs.
+- Starting multiple sessions in parallel against same container is particularly teddious, as you have to mind using proper commands depending if you're starting the container for the first time (`docker run ...`), if it's already running and you must just shell into it (`docker exec ...`), etc.
+- Changes to container's filesystem are ephemeral, so you must take great care of mounting local files and directories into your containers to have your work persist across sessions. For example, I like to mount my local $HOME dir in a volume, as well as common user files (ie: `~/.ssh`, `~/.gitconfig`...) And I constantly had to `cd` into the equivalent directory in container as I was in on my local machine.
+- Passing all proper configurations as arguments to `docker` CLI for different images and use-cases (ie: environments, clusters...) is teddious and error-prone.
+- There is no standard way of sharing launch configurations within and across teams. Docker-compose can be of some help here, but it's really more focused on configuring complex sets of interconnected containers.
+- Some individuals may also need to override some launch configurations for their own specific needs.
+
+Yey was designed to address all those challenges and more by abstracting all configurations into YAML files and presenting users with simple interactive prompts.
+
+# Installation
+
+## MacOS
+
+```bash
+$ brew tap silphid/yey
+$ brew install yey
+```
+
+## Other platforms
+
+Download and install latest release for your platform from the project's GitHub [releases](https://github.com/silphid/yey/releases) page.
+
+# Getting started
+
+## Docker images
+
+Yey comes with its own set of stock docker images - loaded with a bunch of useful DevOps CLI tools - that you can start using right away. However, you are really expected to create your own images for your own specific needs. You can either use yey's stock images as base for you own images or just as inspiration to create them from scratch.
+
+The stock images are defined in the https://github.com/silphid/yey-images repo and are structured as follows:
+
+- `yey-base`: base image for all other yey images, including a minimal set of useful tools (ie: `curl`, `git`, `jq`...)
+  - `yey-devops`: kubernetes and terraform tools
+    - `yey-aws`: AWS tools
+    - `yey-gcp`: Google Cloud Platform tools
+  - `yey-go`: Go dev environment
+  - `yey-node`: Node dev environment
+  - `yey-python`: Python dev environment
+
+For more details on those images, see their project's [documentation](https://github.com/silphid/yey-images).
+
+# Contexts
+
+A yey context is a set of configs (image name, env vars, volume bindings, etc) for launching a docker container. You can define multiple contexts.
+
+# Commands
 
 ## Global flags
 
@@ -47,97 +64,3 @@
 - --dry-run
   - Only displays shell commands that it would execute normally
   - Automatically turns-on verbose mode
-
-# Git repos
-
-- `yey-containers.git`: monorepo with multiple Dockerfiles, all built individually
-  and pushed to dockerhub.
-  - `/base/`: Docker image with minimum functionality (injection...)
-  - `/devops/`: FROM yey-base + kubectl, k9s, helm, helmfile...
-  - `/go/`: FROM yey-devops + go sdk
-  - `/node/`: FROM yey-devops + node, TS...
-  - `/totum/`: FROM yey-devops + go + node...
-- `yey-config.git`: repo to be optionally forked and customized by user/company.
-  - `/shared.yaml`
-  - `/user.yaml`
-- `yey-cli.git`: the yey cli go source code, installable via `go install` or `curl ...`.
-
-# Config files structure
-
-- ~/.yey/
-  - state.yaml
-  - user.yaml: user-specific config overrides
-- yey Git Repo Clone Dir
-  - config
-    - shared.yaml: base configs shared by all users
-    - user.yaml: default user config file copied to home during install
-- In any parent folder (v2?)
-  - .yeyrc
-
-# ~/.yey/state.yaml file format
-
-```yaml
-version: 2021.04
-remote: https://github.com/asdf/asdf
-token: jasd5DasdmYdndIIiD333Mdojasd5DasdmYdndIIiD333Mdodd
-context: cluster1
-```
-
-# Config files format
-
-```yaml
-base:
-  image: silphid/yey
-  tag: latest
-  container: yey # container name for the XXX part: yey-XXX-context-tag
-
-  env:
-    CLOUD: aws # supported clouds: aws, gcp
-    REGION: us-east-1
-
-  mounts:
-    $HOME/.ssh: /root/.ssh
-    $HOME/.gitconfig: /root/.gitconfig
-    $HOME/.aws: /root/.aws
-    $HOME/.config/gh: /root/.config/gh
-    $HOME/.cfconfig: /root/.cfconfig
-
-contexts:
-  cluster1:
-    env:
-      KUBE_CONTEXT: cluster1
-      # REGION: us-east-2
-  cluster2:
-    env:
-      KUBE_CONTEXT: cluster2
-```
-
-# Installation
-
-- User installs yey cli binary, either by:
-  - `$ go install github.com/silphid/yey-cli`
-  - `$ brew install yey`
-  - `$ curl https://github.com/silphid/yey-cli/raw/.../install.sh | bash`
-- User then configures yey via:
-  - `$ yey install` (see "Commands" section above)
-  - (the brew and curl options could maybe run this automatically after installing the binary?)
-
-# Todo
-
-- Remove "none" context
-- Add support for multiple images (other than yey)
-  - Sub-folders under `~/.yey` and git `/config` that can specify extra
-    `user.yaml` and `shared.yaml` files.
-  - The sub-folder name can be used as a prefix to the context name (ie:
-    `image1/context1`) or we add an extra `yey image {image1}` command to
-    select it?
-- Detect current directory on local machine, find equivalent directory (if any)
-  in container by looking at all bind mounts and use that as initial current directory
-  (and try using Docker's option for specifying startup dir instead of old approach)
-
-# Ideas/questions
-
-- yey user support??? can we run our containers as not root via context config or otherwise? SPIKE
-- rm --all remove all contexts
-- support in context file for mapping ports
-- support in context file for passing arbitrary docker flags
