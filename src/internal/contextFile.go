@@ -178,9 +178,9 @@ func resolveContextsPaths(dir string, contexts Contexts) (Contexts, error) {
 	if err != nil {
 		return Contexts{}, err
 	}
-	for _, layer := range contexts.Layers {
-		for name, context := range layer.Contexts {
-			layer.Contexts[name], err = resolveContextPaths(dir, context)
+	for _, variation := range contexts.Variations {
+		for name, context := range variation.Contexts {
+			variation.Contexts[name], err = resolveContextPaths(dir, context)
 			if err != nil {
 				return Contexts{}, err
 			}
@@ -244,14 +244,14 @@ func resolvePath(dir, path string) (string, error) {
 func resolveEnvironmentVariables(contexts Contexts) Contexts {
 	clone := contexts
 	clone.Context = clone.Context.Clone()
-	clone.Layers = clone.Layers.Clone()
+	clone.Variations = clone.Variations.Clone()
 
 	for key, value := range clone.Env {
 		clone.Context.Env[key] = os.ExpandEnv(value)
 	}
 
-	for _, layer := range clone.Layers {
-		for _, ctx := range layer.Contexts {
+	for _, variation := range clone.Variations {
+		for _, ctx := range variation.Contexts {
 			for key, value := range ctx.Env {
 				ctx.Env[key] = os.ExpandEnv(value)
 			}

@@ -8,15 +8,15 @@ import (
 
 func TestGetCombos(t *testing.T) {
 	ctx := Context{
-		Layers: Layers{
-			Layer{
-				Name: "layer1",
+		Variations: Variations{
+			Variation{
+				Name: "variation1",
 				Contexts: map[string]Context{
 					"dev": {
 						Name: "dev",
-						Layers: Layers{
-							Layer{
-								Name: "childLayer",
+						Variations: Variations{
+							Variation{
+								Name: "childVariation",
 								Contexts: map[string]Context{
 									"dev1": {Name: "dev1"},
 									"dev2": {Name: "dev2"},
@@ -28,8 +28,8 @@ func TestGetCombos(t *testing.T) {
 					"prod": {Name: "prod"},
 				},
 			},
-			Layer{
-				Name: "layer2",
+			Variation{
+				Name: "variation2",
 				Contexts: map[string]Context{
 					"go":   {Name: "go"},
 					"node": {Name: "node"},

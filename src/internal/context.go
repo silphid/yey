@@ -16,8 +16,8 @@ type DockerBuild struct {
 
 // Context represents execution configuration for some docker container
 type Context struct {
-	Name       string `yaml:",omitempty"`
-	Layers     Layers `yaml:"layers"`
+	Name       string     `yaml:",omitempty"`
+	Variations Variations `yaml:"variations"`
 	Remove     *bool
 	Image      string
 	Build      DockerBuild
@@ -31,7 +31,7 @@ type Context struct {
 // Clone returns a deep-copy of this context
 func (c Context) Clone() Context {
 	clone := c
-	clone.Layers = c.Layers.Clone()
+	clone.Variations = c.Variations.Clone()
 	if clone.Remove != nil {
 		value := *clone.Remove
 		clone.Remove = &value
@@ -57,8 +57,8 @@ func (c Context) Merge(source Context) Context {
 	if source.Name != "" {
 		merged.Name = source.Name
 	}
-	if source.Layers != nil {
-		merged.Layers = merged.Layers.Merge(source.Layers)
+	if source.Variations != nil {
+		merged.Variations = merged.Variations.Merge(source.Variations)
 	}
 	if source.Remove != nil {
 		value := *source.Remove
@@ -88,7 +88,7 @@ func (c Context) Merge(source Context) Context {
 	return merged
 }
 
-// GetContext returns context resulting from merging contexts with given names from all layers
+// GetContext returns context resulting from merging contexts with given names from all variations
 func (c Context) GetContext(names []string) (Context, error) {
 	ctx, remainingNames, err := c.getContextRecursively(names)
 	if err != nil {
@@ -101,30 +101,30 @@ func (c Context) GetContext(names []string) (Context, error) {
 	return ctx, nil
 }
 
-// getContext returns context resulting from merging contexts with given names from all layers,
-// as well as list of remaining names that were not used to resolve layers (used for recursivity)
+// getContext returns context resulting from merging contexts with given names from all variations,
+// as well as list of remaining names that were not used to resolve variations (used for recursivity)
 func (c Context) getContextRecursively(names []string) (Context, []string, error) {
 	// Start with context itself
 	ctx := c
 
-	for _, layer := range c.Layers {
+	for _, variation := range c.Variations {
 		if len(names) == 0 {
 			return Context{}, nil, fmt.Errorf("too few context names")
 		}
 		name := names[0]
 		names = names[1:]
 
-		// Merge layer context
-		layerContext, ok := layer.Contexts[name]
-		layerContext.Layers = nil
+		// Merge variation context
+		variationContext, ok := variation.Contexts[name]
+		variationContext.Variations = nil
 		if !ok {
-			return Context{}, nil, fmt.Errorf("context %q not found in layer %q", name, layer.Name)
+			return Context{}, nil, fmt.Errorf("context %q not found in variation %q", name, variation.Name)
 		}
-		ctx = ctx.Merge(layerContext)
+		ctx = ctx.Merge(variationContext)
 
 		// Get child contexts recursively
-		if len(layerContext.Layers) > 0 {
-			childContext, remainingNames, err := layerContext.getContextRecursively(names)
+		if len(variationContext.Variations) > 0 {
+			childContext, remainingNames, err := variationContext.getContextRecursively(names)
 			if err != nil {
 				return Context{}, nil, err
 			}
@@ -133,7 +133,7 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 		}
 	}
 
-	ctx.Layers = nil
+	ctx.Variations = nil
 	return ctx, names, nil
 }
 
@@ -145,9 +145,9 @@ func (c Context) GetAllImages() []string {
 		namesMap[c.Image] = struct{}{}
 	}
 
-	// Recurse into all child layers/contexts
-	for _, layer := range c.Layers {
-		for _, ctx := range layer.Contexts {
+	// Recurse into all child variations/contexts
+	for _, variation := range c.Variations {
+		for _, ctx := range variation.Contexts {
 			childImages := ctx.GetAllImages()
 			for _, childImage := range childImages {
 				namesMap[childImage] = struct{}{}

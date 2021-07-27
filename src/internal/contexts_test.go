@@ -11,9 +11,9 @@ func loadContexts(baseFile, ctx1Key, ctx1File, ctx2Key, ctx2File string) Context
 	ctx := Contexts{
 		Context: loadContext(baseFile),
 	}
-	ctx.Layers = Layers{
-		Layer{
-			Name: "layer",
+	ctx.Variations = Variations{
+		Variation{
+			Name: "variation",
 			Contexts: map[string]Context{
 				ctx1Key: loadContext(ctx1File),
 				ctx2Key: loadContext(ctx2File),
@@ -49,7 +49,7 @@ func TestGetContext(t *testing.T) {
 		},
 		{
 			name:  "unknown",
-			error: `context "unknown" not found in layer "layer"`,
+			error: `context "unknown" not found in variation "variation"`,
 		},
 	}
 

@@ -28,8 +28,8 @@ func getOrPromptContextsRecursively(context yey.Context, argNames []string, last
 	}
 
 	selectedNames := make([]string, 0, len(argNames))
-	for _, layer := range context.Layers {
-		// determine context name for layer
+	for _, variation := range context.Variations {
+		// determine context name for variation
 		var selectedName string
 		if len(argNames) > 0 {
 			// use name passed as argument
@@ -38,9 +38,9 @@ func getOrPromptContextsRecursively(context yey.Context, argNames []string, last
 		} else {
 			// prompt for name
 			prompt := &survey.Select{
-				Message: fmt.Sprintf("Select %s", layer.Name),
+				Message: fmt.Sprintf("Select %s", variation.Name),
 			}
-			for k := range layer.Contexts {
+			for k := range variation.Contexts {
 				prompt.Options = append(prompt.Options, k)
 			}
 			sort.Strings(prompt.Options)
@@ -59,12 +59,12 @@ func getOrPromptContextsRecursively(context yey.Context, argNames []string, last
 
 		selectedNames = append(selectedNames, selectedName)
 
-		// Prompt recursively for layer's own child layers
-		selectedContext, ok := layer.Contexts[selectedName]
+		// Prompt recursively for variation's own child variations
+		selectedContext, ok := variation.Contexts[selectedName]
 		if !ok {
-			return nil, nil, nil, fmt.Errorf("layer %q has no context %q", layer.Name, selectedName)
+			return nil, nil, nil, fmt.Errorf("variation %q has no context %q", variation.Name, selectedName)
 		}
-		if len(selectedContext.Layers) > 0 {
+		if len(selectedContext.Variations) > 0 {
 			var childNames []string
 			var err error
 			childNames, argNames, lastNames, err = getOrPromptContextsRecursively(selectedContext, argNames, lastNames)

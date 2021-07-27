@@ -6,18 +6,18 @@ import (
 
 // GetCombos returns the list of all possible context name combinations user can choose from
 func (c Context) GetCombos() [][]string {
-	// Any child layers?
-	if len(c.Layers) > 0 {
-		layerCombos := c.Layers.getCombos()
+	// Any child variations?
+	if len(c.Variations) > 0 {
+		variationCombos := c.Variations.getCombos()
 		if c.Name == "" {
-			return layerCombos
+			return variationCombos
 		}
 
-		// Prepend context name to all layer combos
+		// Prepend context name to all variation combos
 		baseCombo := []string{c.Name}
 		combos := make([][]string, 0)
-		for _, layerCombo := range layerCombos {
-			combo := append(baseCombo, layerCombo...)
+		for _, variationCombo := range variationCombos {
+			combo := append(baseCombo, variationCombo...)
 			combos = append(combos, combo)
 		}
 
@@ -33,18 +33,18 @@ func (c Context) GetCombos() [][]string {
 	return [][]string{}
 }
 
-func (layers Layers) getCombos() [][]string {
+func (variations Variations) getCombos() [][]string {
 	var combos [][]string
-	for _, layer := range layers {
-		layerCombos := layer.getCombos()
+	for _, variation := range variations {
+		variationCombos := variation.getCombos()
 		if combos == nil {
-			combos = layerCombos
+			combos = variationCombos
 		} else {
-			// Compute all combinations of current and layer combos
+			// Compute all combinations of current and variation combos
 			var newCombos [][]string
 			for _, combo := range combos {
-				for _, layerCombo := range layerCombos {
-					newCombos = append(newCombos, append(combo, layerCombo...))
+				for _, variationCombo := range variationCombos {
+					newCombos = append(newCombos, append(combo, variationCombo...))
 				}
 			}
 			combos = newCombos
@@ -53,10 +53,10 @@ func (layers Layers) getCombos() [][]string {
 	return combos
 }
 
-func (layer Layer) getCombos() [][]string {
-	// Extract layer's sorted context names
+func (variation Variation) getCombos() [][]string {
+	// Extract variation's sorted context names
 	names := make([]string, 0)
-	for name := range layer.Contexts {
+	for name := range variation.Contexts {
 		names = append(names, name)
 	}
 	sort.Strings(names)
@@ -64,7 +64,7 @@ func (layer Layer) getCombos() [][]string {
 	// Recursively get all combos from child contexts
 	var combos [][]string
 	for _, name := range names {
-		context := layer.Contexts[name]
+		context := variation.Contexts[name]
 		combos = append(combos, context.GetCombos()...)
 	}
 	return combos
