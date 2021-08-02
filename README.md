@@ -21,19 +21,20 @@ Yey was designed to address all those challenges and more by abstracting all con
 
 # Installation
 
-## MacOS
+- MacOS
 
-```bash
-$ brew tap silphid/yey
-$ brew install yey
-```
+  ```bash
+  $ brew tap silphid/yey
+  $ brew install yey
+  ```
 
-## Other platforms
-
-- Download and install latest release for your platform from the GitHub [releases](https://github.com/silphid/yey/releases) page.
-- Make sure you place the binary somewhere in your `$PATH`.
+- Other platforms
+  - Download and install latest release for your platform from the GitHub [releases](https://github.com/silphid/yey/releases) page.
+  - Make sure you place the binary somewhere in your `$PATH`.
 
 # Getting started
+
+Create a `.yeyrc.yaml` file in your `$HOME` directory. You can eitherTypically, you would just set the parent
 
 ## Docker images
 
@@ -51,11 +52,13 @@ The stock images are defined in the https://github.com/silphid/yey-images repo a
 
 For more details on those images, see that project's [documentation](https://github.com/silphid/yey-images).
 
-# Contexts
+# Configuration
 
-A yey context is a set of configs (image name, env vars, volume bindings, etc) for launching a docker container. You can define multiple contexts.
+Yey launch configurations are defined in one or multiple `.yeyrc.yaml` RC files that specify the parameters to pass to Docker.
 
-Here's an example context:
+## Contexts
+
+A "context" is a set of launch configuration properties (ie: image name, env vars, volume bindings, etc) for launching a docker container, such as:
 
 ```yaml
 image: alpine
@@ -68,13 +71,31 @@ env:
 entrypoint: zsh
 ```
 
-## General structure of `.yeyrc.yaml`
+## Resolving RC files
 
-## Resolving `.yeyrc.yaml` file(s)
+Yey resolves `.yeyrc.yaml` files as follows:
 
-Yey resolves the RC file in following order:
+- Current directory
+- All the way up current directory structure
+- `$HOME` directory
 
--
+This allows you to create an RC file either specific to a given project or global to your whole system.
+
+## Parent RC files
+
+An RC file can refer to a parent RC file URL via the `parent` property, in which case it inherits all properties and variations/contexts from that parent, which it can augment or override freely.
+
+For example, by placing the following `.yeyrc.yaml` in your home dir, you can refer to another RC file on GitHub and only override the `GCP_ZONE` env var:
+
+```yaml
+parent: https://raw.githubusercontent.com/silphid/yey-images/master/.yeyrc.yaml
+env:
+  GCP_ZONE: us-east1-b
+```
+
+The parent URL can also be an absolute or relative path on local file system.
+
+This allows you to place launch configurations shared within or across teams in a common location (ie: a private Git repo), while allowing each individual to override or augment them for their own particular needs.
 
 # Commands
 
