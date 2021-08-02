@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -259,4 +261,16 @@ func resolveEnvironmentVariables(contexts Contexts) Contexts {
 	}
 
 	return clone
+}
+
+// InitContextFile creates an RC file in given directory, if it does not already exists
+// and optionally sets its parent property (without affecting rest of file, if any)
+func InitContextFile(dir string, parent string) error {
+	file := filepath.Join(dir, yeyRCFileName)
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("failed to read existing file: %w", err)
+	}
+
+	text = string(bytes)
 }
