@@ -52,13 +52,17 @@ func (c Context) Clone() Context {
 }
 
 // Merge creates a deep-copy of this context and copies values from given source context on top of it
-func (c Context) Merge(source Context) Context {
+func (c Context) Merge(source Context, withVariations bool) Context {
 	merged := c.Clone()
 	if source.Name != "" {
 		merged.Name = source.Name
 	}
-	if source.Variations != nil {
-		merged.Variations = merged.Variations.Merge(source.Variations)
+	if withVariations {
+		if source.Variations != nil {
+			merged.Variations = merged.Variations.Merge(source.Variations)
+		}
+	} else {
+		merged.Variations = nil
 	}
 	if source.Remove != nil {
 		value := *source.Remove
@@ -106,6 +110,7 @@ func (c Context) GetContext(names []string) (Context, error) {
 func (c Context) getContextRecursively(names []string) (Context, []string, error) {
 	// Start with context itself
 	ctx := c
+	ctx.Variations = nil
 
 	for _, variation := range c.Variations {
 		if len(names) == 0 {
@@ -116,11 +121,10 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 
 		// Merge variation context
 		variationContext, ok := variation.Contexts[name]
-		variationContext.Variations = nil
 		if !ok {
 			return Context{}, nil, fmt.Errorf("context %q not found in variation %q", name, variation.Name)
 		}
-		ctx = ctx.Merge(variationContext)
+		ctx = ctx.Merge(variationContext, false)
 
 		// Get child contexts recursively
 		if len(variationContext.Variations) > 0 {
@@ -128,12 +132,11 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 			if err != nil {
 				return Context{}, nil, err
 			}
-			ctx = ctx.Merge(childContext)
+			ctx = ctx.Merge(childContext, false)
 			names = remainingNames
 		}
 	}
 
-	ctx.Variations = nil
 	return ctx, names, nil
 }
 

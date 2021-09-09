@@ -27,7 +27,7 @@ func (l Variation) Merge(source Variation) Variation {
 	for key, value := range source.Contexts {
 		existing, ok := merged.Contexts[key]
 		if ok {
-			merged.Contexts[key] = existing.Merge(value)
+			merged.Contexts[key] = existing.Merge(value, true)
 		} else {
 			merged.Contexts[key] = value
 		}

@@ -75,7 +75,7 @@ func TestMerge(t *testing.T) {
 
 			parent := loadContext(c.parent)
 			child := loadContext(c.child)
-			actual := parent.Merge(child)
+			actual := parent.Merge(child, true)
 			expected := loadContext(expectedName)
 
 			if diff := deep.Equal(expected, actual); diff != nil {
