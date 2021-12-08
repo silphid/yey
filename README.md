@@ -71,6 +71,68 @@ env:
 entrypoint: zsh
 ```
 
+The full format is:
+
+```yaml
+# Docker image to launch
+image: <string>
+
+# Local directories or files to mount into container (docker --volume flag)
+mounts:
+  <local dir/file path>: <in container mount dir/file path>
+  ...
+
+# Environment variables to pass into container (docker --env flag)
+env:
+  <variable>: <string>
+  ...
+
+# Optional command to execute in container (defaults to "sh").
+# Note that this command is also used to open extra sessions
+# against already running containers.
+entrypoint: <string>
+
+# Optional args that get appended to entrypoint when initially
+# starting container. Note that those are ignored when opening
+# extra sessions against already running containers.
+cmd:
+  - <string>
+  ...
+
+# Whether to remove container upon exit (docker --rm flag)
+remove: <true | false (default)>
+
+# Network name to connect container to (docker --network flag)
+network: <string | "host" (default)>
+
+# Optional Dockerfile to build and run
+build:
+  # Dockerfile to build
+	dockerfile: <string>
+  # Optional context directory to use for build (defaults to same as Dockerfile)
+  context: <string>
+  # Optional build arguments to use for build
+	args:
+    <arg>: <string>
+    ...
+
+# Optional variations to prompt user for and that will override base values.
+# Overrides can be anything valid at the top level, including sub-variations.
+# If multiple variations are defined at the same level, user will be prompted
+# to make a choice for each one of them (think of variations as multiple
+# questions that user must answer before starting the container).
+# Sub-variations within a choice are only prompted to user when that choice is
+# selected (think of them as contextual sub-questions).
+variations:
+  <variation1>:
+    <choice1>:
+      <overrides>
+    <choice2>:
+      <overrides>
+  <variation2>:
+    ...
+```
+
 ## Resolving RC files
 
 Yey resolves `.yeyrc.yaml` files as follows:
@@ -96,14 +158,3 @@ env:
 The parent URL can also be an absolute or relative path on local file system.
 
 This allows you to place launch configurations shared within or across teams in a common location (ie: a private Git repo), while allowing each individual to override or augment them for their own particular needs.
-
-# Commands
-
-## Global flags
-
-- -h --help
-- -v --verbose
-  - Displays detailed output messages
-- --dry-run
-  - Only displays shell commands that it would execute normally
-  - Automatically turns-on verbose mode
