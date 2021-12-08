@@ -108,11 +108,11 @@ network: <string | "host" (default)>
 # Optional Dockerfile to build and run
 build:
   # Dockerfile to build
-	dockerfile: <string>
+  dockerfile: <string>
   # Optional context directory to use for build (defaults to same as Dockerfile)
   context: <string>
   # Optional build arguments to use for build
-	args:
+  args:
     <arg>: <string>
     ...
 
