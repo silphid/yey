@@ -199,6 +199,11 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		args = append(args, "--entrypoint", yeyCtx.EntryPoint)
 	}
 
+	// DockerArgs
+	if len(yeyCtx.DockerArgs) > 0 {
+		args = append(args, yeyCtx.DockerArgs...)
+	}
+
 	args = append(args, yeyCtx.Image)
 	args = append(args, yeyCtx.Cmd...)
 

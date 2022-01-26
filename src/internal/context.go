@@ -26,6 +26,7 @@ type Context struct {
 	EntryPoint string `yaml:"entrypoint,omitempty"`
 	Cmd        []string
 	Network    string
+	DockerArgs []string `yaml:"dockerArgs,omitempty"`
 }
 
 // Clone returns a deep-copy of this context
@@ -89,6 +90,8 @@ func (c Context) Merge(source Context, withVariations bool) Context {
 	if source.Network != "" {
 		merged.Network = source.Network
 	}
+	merged.Cmd = append(merged.Cmd, source.Cmd...)
+	merged.DockerArgs = append(merged.DockerArgs, source.DockerArgs...)
 	return merged
 }
 

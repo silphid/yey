@@ -105,6 +105,11 @@ remove: <true | false (default)>
 # Network name to connect container to (docker --network flag)
 network: <string | "host" (default)>
 
+# Individual arguments that will be passed to docker cli as is.
+dockerArgs:
+  - <string>
+  ...
+
 # Optional Dockerfile to build and run
 build:
   # Dockerfile to build
