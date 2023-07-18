@@ -71,11 +71,16 @@ func RemoveMany(ctx context.Context, containers []string, options RemoveOptions)
 	return run(ctx, args...)
 }
 
-func Pull(ctx context.Context, image string) error {
-	return run(ctx, "pull", image)
+func Pull(ctx context.Context, image, platform string) error {
+	args := []string{"pull"}
+	if platform != "" {
+		args = append(args, "--platform", platform)
+	}
+	args = append(args, image)
+	return run(ctx, args...)
 }
 
-func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs map[string]string, context string) error {
+func Build(ctx context.Context, dockerPath, imageTag, platform string, buildArgs map[string]string, context string) error {
 	exists, err := imageExists(ctx, imageTag)
 	if err != nil {
 		return fmt.Errorf("failed to look up image tag %q: %w", imageTag, err)
@@ -88,6 +93,9 @@ func Build(ctx context.Context, dockerPath string, imageTag string, buildArgs ma
 	args := []string{"build", "-f", dockerPath, "-t", imageTag}
 	for key, value := range buildArgs {
 		args = append(args, "--build-arg", fmt.Sprintf("%s=%q", key, value))
+	}
+	if platform != "" {
+		args = append(args, "--platform", platform)
 	}
 	if context == "" {
 		context = filepath.Dir(dockerPath)
@@ -161,6 +169,10 @@ func runContainer(ctx context.Context, yeyCtx yey.Context, containerName string,
 		"--name", containerName,
 		"--env", "YEY_WORK_DIR=" + cwd,
 		"--env", "YEY_CONTEXT=" + yeyCtx.Name,
+	}
+
+	if yeyCtx.Platform != "" {
+		args = append(args, "--platform", yeyCtx.Platform)
 	}
 
 	// Context env vars

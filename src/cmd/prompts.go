@@ -10,7 +10,7 @@ import (
 	yey "github.com/silphid/yey/src/internal"
 )
 
-// Parses given value into context name and variant and, as needed, prompt user for those values
+// GetOrPromptContexts parses given value into context name and variant and, as needed, prompt user for those values
 func GetOrPromptContexts(context yey.Context, argNames []string, lastNames []string) ([]string, error) {
 	names, remainingArgNames, _, err := getOrPromptContextsRecursively(context, argNames, lastNames)
 	if err != nil {
@@ -78,22 +78,37 @@ func getOrPromptContextsRecursively(context yey.Context, argNames []string, last
 	return selectedNames, argNames, lastNames, nil
 }
 
-// Prompts user to multi-select among given images
-func PromptImages(allImages []string) ([]string, error) {
+// PromptImagesAndPlatforms prompts user to multi-select among given images
+func PromptImagesAndPlatforms(allImages []yey.ImageAndPlatform) ([]yey.ImageAndPlatform, error) {
+	// Format list of options
+	var options []string
+	for _, item := range allImages {
+		platform := ""
+		if item.Platform != "" {
+			platform = fmt.Sprintf(" (%s)", item.Platform)
+		}
+		options = append(options, fmt.Sprintf("%s%s", item.Image, platform))
+	}
 
+	// Prompt user to select images
 	prompt := &survey.MultiSelect{
 		Message: "Select images to pull",
-		Options: allImages,
+		Options: options,
 	}
-	selectedImages := []string{}
-	if err := survey.AskOne(prompt, &selectedImages); err != nil {
+	var selectedIndices []int
+	if err := survey.AskOne(prompt, &selectedIndices); err != nil {
 		return nil, err
 	}
 
+	// Lookup images based on indices
+	var selectedImages []yey.ImageAndPlatform
+	for _, selectedIndex := range selectedIndices {
+		selectedImages = append(selectedImages, allImages[selectedIndex])
+	}
 	return selectedImages, nil
 }
 
-// Prompts user to multi-select among given containers and optionally also
+// PromptContainers prompts user to multi-select among given containers and optionally also
 // other containers (which are displayed in yellow)
 func PromptContainers(containers []string, otherContainers []string, message string) ([]string, error) {
 	// Combine containers and otherContainers (in yellow)

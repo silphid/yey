@@ -24,9 +24,9 @@ func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pull",
 		Short: "Pull image(s) from registry",
-		Args:  cobra.ArbitraryArgs,
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), args, options)
+			return run(cmd.Context(), options)
 		},
 	}
 
@@ -35,25 +35,25 @@ func New() *cobra.Command {
 	return cmd
 }
 
-func run(ctx context.Context, names []string, options pullOptions) error {
+func run(ctx context.Context, options pullOptions) error {
 	contexts, err := yey.LoadContexts()
 	if err != nil {
 		return err
 	}
 
 	// Determine which images to pull
-	images := contexts.GetAllImages()
+	imagesAndPlatforms := contexts.GetAllImagesAndPlatforms("")
 	if !options.all {
-		images, err = cmd.PromptImages(images)
+		imagesAndPlatforms, err = cmd.PromptImagesAndPlatforms(imagesAndPlatforms)
 		if err != nil {
 			return fmt.Errorf("failed to prompt images to pull: %w", err)
 		}
 	}
 
 	// Pull selected images
-	for _, image := range images {
-		fmt.Fprintf(os.Stderr, color.Ize(color.Green, "Pulling %s\n"), image)
-		if err := docker.Pull(ctx, image); err != nil {
+	for _, item := range imagesAndPlatforms {
+		fmt.Fprintf(os.Stderr, color.Ize(color.Green, "Pulling %s\n"), item)
+		if err := docker.Pull(ctx, item.Image, item.Platform); err != nil {
 			return err
 		}
 	}

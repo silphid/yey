@@ -75,7 +75,7 @@ func run(ctx context.Context, names []string, options Options) error {
 
 	if yeyContext.Image == "" {
 		var err error
-		yeyContext.Image, err = readAndBuildDockerfile(ctx, yeyContext.Build, options)
+		yeyContext.Image, err = readAndBuildDockerfile(ctx, yeyContext.Build, yeyContext.Platform)
 		if err != nil {
 			return fmt.Errorf("failed to build yey context image: %w", err)
 		}
@@ -112,7 +112,7 @@ func run(ctx context.Context, names []string, options Options) error {
 		// TODO: Check running containers with image
 		// and prompt for killing it
 		yey.Log("Pulling %s", yeyContext.Image)
-		docker.Pull(ctx, yeyContext.Image)
+		docker.Pull(ctx, yeyContext.Image, yeyContext.Platform)
 	}
 
 	// Banner
@@ -164,7 +164,7 @@ func getContainerWorkDir(yeyContext yey.Context) (string, error) {
 	return "", nil
 }
 
-func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild, options Options) (string, error) {
+func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild, platform string) (string, error) {
 	dockerBytes, err := os.ReadFile(build.Dockerfile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read dockerfile: %w", err)
@@ -172,7 +172,7 @@ func readAndBuildDockerfile(ctx context.Context, build yey.DockerBuild, options 
 
 	imageName := yey.ImageName(dockerBytes)
 
-	if err := docker.Build(ctx, build.Dockerfile, imageName, build.Args, build.Context); err != nil {
+	if err := docker.Build(ctx, build.Dockerfile, imageName, platform, build.Args, build.Context); err != nil {
 		return "", fmt.Errorf("failed to build image: %w", err)
 	}
 

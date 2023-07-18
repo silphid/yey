@@ -26,6 +26,7 @@ type Context struct {
 	EntryPoint string `yaml:"entrypoint,omitempty"`
 	Cmd        []string
 	Network    string
+	Platform   string   `yaml:"platform,omitempty"`
 	DockerArgs []string `yaml:"dockerArgs,omitempty"`
 }
 
@@ -71,6 +72,9 @@ func (c Context) Merge(source Context, withVariations bool) Context {
 	}
 	if source.Image != "" {
 		merged.Image = source.Image
+	}
+	if source.Platform != "" {
+		merged.Platform = source.Platform
 	}
 	for key, value := range source.Env {
 		merged.Env[key] = value
@@ -143,31 +147,46 @@ func (c Context) getContextRecursively(names []string) (Context, []string, error
 	return ctx, names, nil
 }
 
-// GetAllImages returns the list of image names referenced in context recursively
-func (c Context) GetAllImages() []string {
-	namesMap := make(map[string]struct{})
+type ImageAndPlatform struct {
+	Image    string
+	Platform string
+}
+
+// GetAllImagesAndPlatforms returns the list of image names referenced in context recursively
+func (c Context) GetAllImagesAndPlatforms(platform string) []ImageAndPlatform {
+	imagesAndPlatforms := make(map[string]ImageAndPlatform)
+
+	// Override platform if specified
+	if c.Platform != "" {
+		platform = c.Platform
+	}
 
 	if c.Image != "" {
-		namesMap[c.Image] = struct{}{}
+		imagesAndPlatforms[c.Image] = ImageAndPlatform{
+			Image:    c.Image,
+			Platform: platform,
+		}
 	}
 
 	// Recurse into all child variations/contexts
 	for _, variation := range c.Variations {
 		for _, ctx := range variation.Contexts {
-			childImages := ctx.GetAllImages()
-			for _, childImage := range childImages {
-				namesMap[childImage] = struct{}{}
+			children := ctx.GetAllImagesAndPlatforms(platform)
+			for _, child := range children {
+				imagesAndPlatforms[child.Image] = child
 			}
 		}
 	}
 
 	// Sort
-	sortedNames := make([]string, 0, len(namesMap))
-	for name := range namesMap {
-		sortedNames = append(sortedNames, name)
+	sorted := make([]ImageAndPlatform, 0, len(imagesAndPlatforms))
+	for _, item := range imagesAndPlatforms {
+		sorted = append(sorted, item)
 	}
-	sort.Strings(sortedNames)
-	return sortedNames
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Image < sorted[j].Image
+	})
+	return sorted
 }
 
 // String returns a user-friendly yaml representation of this context
