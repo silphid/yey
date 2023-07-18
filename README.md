@@ -24,7 +24,7 @@ Yey was designed to address all those challenges and more by abstracting all con
 - MacOS
 
   ```bash
-  $ brew tap silphid/yey
+  $ brew tap silphid/tap
   $ brew install yey
   ```
 
